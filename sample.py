@@ -20,8 +20,9 @@ if __name__ == '__main__':
         batch = torch.FloatTensor(1, 3, 224, 224)
         model = add_flops_counting_methods(net)
         model.eval().start_flops_count()
-        _ = model(batch)
+        out = model(batch)
 
         print(model)
+        print('Output shape: {}'.format(list(out.shape)))
         print('Flops:  {}'.format(flops_to_string(model.compute_average_flops_cost())))
         print('Params: ' + get_model_parameters_number(model))
