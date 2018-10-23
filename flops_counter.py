@@ -2,6 +2,27 @@ import torch.nn as nn
 import torch
 import numpy as np
 
+def flops_to_string(flops):
+    if flops // 10**9 > 0:
+        return str(round(flops / 10.**9, 2)) + 'GMac'
+    elif flops // 10**6 > 0:
+        return str(round(flops / 10.**6, 2)) + 'MMac'
+    elif flops // 10**3 > 0:
+        return str(round(flops / 10.**3, 2)) + 'KMac'
+    return str(flops) + 'Mac'
+
+def get_model_parameters_number(model, as_string=True):
+    params_num = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    if not as_string:
+        return params_num
+
+    if params_num // 10 ** 6 > 0:
+        return str(round(params_num / 10 ** 6, 2)) + 'M'
+    elif params_num // 10 ** 3:
+        return str(round(params_num / 10 ** 3, 2)) + 'k'
+
+    return str(params_num)
+
 def add_flops_counting_methods(net_main_module):
     # adding additional methods to the existing module object,
     # this is done this way so that each function has access to self object
@@ -91,7 +112,8 @@ def is_supported_instance(module):
        or isinstance(module, torch.nn.PReLU) or isinstance(module, torch.nn.ELU) \
        or isinstance(module, torch.nn.LeakyReLU) or isinstance(module, torch.nn.ReLU6) \
        or isinstance(module, torch.nn.Linear) or isinstance(module, torch.nn.MaxPool2d) \
-       or isinstance(module, torch.nn.AvgPool2d) or isinstance(module, torch.nn.BatchNorm2d):
+       or isinstance(module, torch.nn.AvgPool2d) or isinstance(module, torch.nn.BatchNorm2d) \
+       or isinstance(module, torch.nn.Upsample):
         return True
 
     return False
@@ -99,6 +121,15 @@ def is_supported_instance(module):
 
 def empty_flops_counter_hook(module, input, output):
     module.__flops__ += 0
+
+
+def upsample_flops_counter_hook(module, input, output):
+    output_size = output[0]
+    batch_size = output_size.shape[0]
+    output_elements_count = batch_size
+    for val in output_size.shape[1:]:
+        output_elements_count *= val
+    module.__flops__ += output_elements_count
 
 
 def relu_flops_counter_hook(module, input, output):
@@ -213,6 +244,8 @@ def add_flops_counter_hook_function(module):
             handle = module.register_forward_hook(pool_flops_counter_hook)
         elif isinstance(module, torch.nn.BatchNorm2d):
             handle = module.register_forward_hook(bn_flops_counter_hook)
+        elif isinstance(module, torch.nn.Upsample):
+            handle = module.register_forward_hook(upsample_flops_counter_hook)
         else:
             handle = module.register_forward_hook(empty_flops_counter_hook)
         module.__flops_handle__ = handle
