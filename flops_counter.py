@@ -108,12 +108,10 @@ def remove_flops_mask(module):
 
 # ---- Internal functions
 def is_supported_instance(module):
-    if isinstance(module, torch.nn.Conv2d) or isinstance(module, torch.nn.ReLU) \
-       or isinstance(module, torch.nn.PReLU) or isinstance(module, torch.nn.ELU) \
-       or isinstance(module, torch.nn.LeakyReLU) or isinstance(module, torch.nn.ReLU6) \
-       or isinstance(module, torch.nn.Linear) or isinstance(module, torch.nn.MaxPool2d) \
-       or isinstance(module, torch.nn.AvgPool2d) or isinstance(module, torch.nn.BatchNorm2d) \
-       or isinstance(module, torch.nn.Upsample):
+    if isinstance(module, (torch.nn.Conv2d, torch.nn.ReLU, torch.nn.PReLU, torch.nn.ELU, \
+                           torch.nn.LeakyReLU, torch.nn.ReLU6, torch.nn.Linear, \
+                           torch.nn.MaxPool2d, torch.nn.AvgPool2d, torch.nn.BatchNorm2d, \
+                           torch.nn.Upsample)):
         return True
 
     return False
@@ -133,12 +131,7 @@ def upsample_flops_counter_hook(module, input, output):
 
 
 def relu_flops_counter_hook(module, input, output):
-    input = input[0]
-    batch_size = input.shape[0]
-    active_elements_count = batch_size
-    for val in input.shape[1:]:
-        active_elements_count *= val
-
+    active_elements_count = output.numel()
     module.__flops__ += active_elements_count
 
 
@@ -234,13 +227,12 @@ def add_flops_counter_hook_function(module):
 
         if isinstance(module, torch.nn.Conv2d):
             handle = module.register_forward_hook(conv_flops_counter_hook)
-        elif isinstance(module, torch.nn.ReLU) or isinstance(module, torch.nn.PReLU) \
-             or isinstance(module, torch.nn.ELU) or isinstance(module, torch.nn.LeakyReLU) \
-             or isinstance(module, torch.nn.ReLU6):
+        elif isinstance(module, (torch.nn.ReLU, torch.nn.PReLU, torch.nn.ELU, \
+                                 torch.nn.LeakyReLU, torch.nn.ReLU6)):
             handle = module.register_forward_hook(relu_flops_counter_hook)
         elif isinstance(module, torch.nn.Linear):
             handle = module.register_forward_hook(linear_flops_counter_hook)
-        elif isinstance(module, torch.nn.AvgPool2d) or isinstance(module, torch.nn.MaxPool2d):
+        elif isinstance(module, (torch.nn.AvgPool2d, torch.nn.MaxPool2d)):
             handle = module.register_forward_hook(pool_flops_counter_hook)
         elif isinstance(module, torch.nn.BatchNorm2d):
             handle = module.register_forward_hook(bn_flops_counter_hook)
