@@ -10,7 +10,7 @@ Supported layers:
 - Activations (ReLU, PReLU, ELU, ReLU6, LeakyReLU)
 - Linear
 - Upsample
-- Poolings (AvgPool2d and MaxPool2d)
+- Poolings (AvgPool2d, MaxPool2d and adaptive ones)
 
 ## Example
 ```python

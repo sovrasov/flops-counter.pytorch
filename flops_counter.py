@@ -111,7 +111,7 @@ def is_supported_instance(module):
     if isinstance(module, (torch.nn.Conv2d, torch.nn.ReLU, torch.nn.PReLU, torch.nn.ELU, \
                            torch.nn.LeakyReLU, torch.nn.ReLU6, torch.nn.Linear, \
                            torch.nn.MaxPool2d, torch.nn.AvgPool2d, torch.nn.BatchNorm2d, \
-                           torch.nn.Upsample)):
+                           torch.nn.Upsample, nn.AdaptiveMaxPool2d, nn.AdaptiveAvgPool2d)):
         return True
 
     return False
@@ -232,7 +232,8 @@ def add_flops_counter_hook_function(module):
             handle = module.register_forward_hook(relu_flops_counter_hook)
         elif isinstance(module, torch.nn.Linear):
             handle = module.register_forward_hook(linear_flops_counter_hook)
-        elif isinstance(module, (torch.nn.AvgPool2d, torch.nn.MaxPool2d)):
+        elif isinstance(module, (torch.nn.AvgPool2d, torch.nn.MaxPool2d, nn.AdaptiveMaxPool2d, \
+                                 nn.AdaptiveAvgPool2d)):
             handle = module.register_forward_hook(pool_flops_counter_hook)
         elif isinstance(module, torch.nn.BatchNorm2d):
             handle = module.register_forward_hook(bn_flops_counter_hook)
