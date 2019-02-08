@@ -15,19 +15,12 @@ Supported layers:
 ## Example
 ```python
 import torchvision.models as models
-import torch.nn as nn
 import torch
-from flops_counter import add_flops_counting_methods, flops_to_string, get_model_parameters_number
+from flops_counter import get_model_complexity_info
 
 with torch.cuda.device(0):
   net = models.densenet161()
-  batch = torch.FloatTensor(1, 3, 224, 224)
-  model = add_flops_counting_methods(net)
-  model.eval().start_flops_count()
-  out = model(batch)
-
-  print(model)
-  print('Output shape: {}'.format(list(out.shape)))
-  print('Flops:  {}'.format(flops_to_string(model.compute_average_flops_cost())))
-  print('Params: ' + get_model_parameters_number(model))
+  flops, params = get_model_complexity_info(net, (224, 224), as_strings=True, print_per_layer_stat=True)
+  print('Flops:  {}'.format(flops))
+  print('Params: ' + params)
 ```

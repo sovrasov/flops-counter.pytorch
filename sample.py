@@ -1,8 +1,7 @@
 import argparse
 import torchvision.models as models
-import torch.nn as nn
 import torch
-from flops_counter import add_flops_counting_methods, flops_to_string, get_model_parameters_number, print_model_with_flops
+from flops_counter import get_model_complexity_info
 
 pt_models = { 'resnet18': models.resnet18, 'resnet50': models.resnet50,
               'alexnet': models.alexnet,
@@ -17,12 +16,6 @@ if __name__ == '__main__':
 
     with torch.cuda.device(args.device):
         net = pt_models[args.model]()
-        batch = torch.FloatTensor(1, 3, 224, 224)
-        model = add_flops_counting_methods(net)
-        model.eval().start_flops_count()
-        out = model(batch)
-
-        print_model_with_flops(model)
-        print('Output shape: {}'.format(list(out.shape)))
-        print('Flops:  {}'.format(flops_to_string(model.compute_average_flops_cost())))
-        print('Params: ' + get_model_parameters_number(model))
+        flops, params = get_model_complexity_info(net, (224, 224), as_strings=True, print_per_layer_stat=True)
+        print('Flops:  {}'.format(flops))
+        print('Params: ' + params)

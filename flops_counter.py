@@ -2,6 +2,25 @@ import torch.nn as nn
 import torch
 import numpy as np
 
+def get_model_complexity_info(model, input_res, print_per_layer_stat=True, as_strings=True):
+    assert type(input_res) is tuple
+    assert len(input_res) == 2
+    batch = torch.FloatTensor(1, 3, *input_res)
+    flops_model = add_flops_counting_methods(model)
+    flops_model.eval().start_flops_count()
+    out = flops_model(batch)
+
+    if print_per_layer_stat:
+        print_model_with_flops(flops_model)
+    flops_count = flops_model.compute_average_flops_cost()
+    params_count = get_model_parameters_number(flops_model)
+    flops_model.stop_flops_count()
+
+    if as_strings:
+        return flops_to_string(flops_count), params_to_string(params_count)
+
+    return flops_count, params_count
+
 def flops_to_string(flops, units='GMac', precision=2):
     if units is None:
         if flops // 10**9 > 0:
@@ -21,6 +40,12 @@ def flops_to_string(flops, units='GMac', precision=2):
             return str(round(flops / 10.**3, precision)) + ' ' + units
         else:
             return str(flops) + ' Mac'
+
+def params_to_string(params_num):
+    if params_num // 10 ** 6 > 0:
+        return str(round(params_num / 10 ** 6, 2)) + ' M'
+    elif params_num // 10 ** 3:
+        return str(round(params_num / 10 ** 3, 2)) + ' k'
 
 def print_model_with_flops(model, units='GMac', precision=3):
     total_flops = model.compute_average_flops_cost()
@@ -59,17 +84,9 @@ def print_model_with_flops(model, units='GMac', precision=3):
     print(model)
     model.apply(del_extra_repr)
 
-def get_model_parameters_number(model, as_string=True):
+def get_model_parameters_number(model):
     params_num = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    if not as_string:
-        return params_num
-
-    if params_num // 10 ** 6 > 0:
-        return str(round(params_num / 10 ** 6, 2)) + 'M'
-    elif params_num // 10 ** 3:
-        return str(round(params_num / 10 ** 3, 2)) + 'k'
-
-    return str(params_num)
+    return params_num
 
 def add_flops_counting_methods(net_main_module):
     # adding additional methods to the existing module object,
