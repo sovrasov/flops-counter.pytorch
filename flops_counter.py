@@ -2,14 +2,62 @@ import torch.nn as nn
 import torch
 import numpy as np
 
-def flops_to_string(flops):
-    if flops // 10**9 > 0:
-        return str(round(flops / 10.**9, 2)) + 'GMac'
-    elif flops // 10**6 > 0:
-        return str(round(flops / 10.**6, 2)) + 'MMac'
-    elif flops // 10**3 > 0:
-        return str(round(flops / 10.**3, 2)) + 'KMac'
-    return str(flops) + 'Mac'
+def flops_to_string(flops, units='GMac', precision=2):
+    if units is None:
+        if flops // 10**9 > 0:
+            return str(round(flops / 10.**9, precision)) + ' GMac'
+        elif flops // 10**6 > 0:
+            return str(round(flops / 10.**6, precision)) + ' MMac'
+        elif flops // 10**3 > 0:
+            return str(round(flops / 10.**3, precision)) + ' KMac'
+        else:
+            return str(flops) + ' Mac'
+    else:
+        if units == 'GMac':
+            return str(round(flops / 10.**9, precision)) + ' ' + units
+        elif units == 'MMac':
+            return str(round(flops / 10.**6, precision)) + ' ' + units
+        elif units == 'KMac':
+            return str(round(flops / 10.**3, precision)) + ' ' + units
+        else:
+            return str(flops) + ' Mac'
+
+def print_model_with_flops(model, units='GMac', precision=3):
+    total_flops = model.compute_average_flops_cost()
+
+    def accumulate_flops(self):
+        if is_supported_instance(self):
+            return self.__flops__ / model.__batch_counter__
+        else:
+            sum = 0
+            for m in self.children():
+                sum += m.accumulate_flops()
+            return sum
+
+    def flops_repr(self):
+        accumulated_flops_cost = self.accumulate_flops()
+        return ', '.join([flops_to_string(accumulated_flops_cost, units=units, precision=precision),
+                          '{:.3%} MACs'.format(accumulated_flops_cost / total_flops),
+                          self.original_extra_repr()])
+
+    def add_extra_repr(m):
+        m.accumulate_flops = accumulate_flops.__get__(m)
+        flops_extra_repr = flops_repr.__get__(m)
+        if m.extra_repr != flops_extra_repr:
+            m.original_extra_repr = m.extra_repr
+            m.extra_repr = flops_extra_repr
+            assert m.extra_repr != m.original_extra_repr
+
+    def del_extra_repr(m):
+        if hasattr(m, 'original_extra_repr'):
+            m.extra_repr = m.original_extra_repr
+            del m.original_extra_repr
+        if hasattr(m, 'accumulate_flops'):
+            del m.accumulate_flops
+
+    model.apply(add_extra_repr)
+    print(model)
+    model.apply(del_extra_repr)
 
 def get_model_parameters_number(model, as_string=True):
     params_num = sum(p.numel() for p in model.parameters() if p.requires_grad)
