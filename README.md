@@ -1,8 +1,8 @@
 # Flops counter for convolutional networks in pytorch framework
 
-Requirements: Pytorch 0.4.1 or 1.0, torchvision 0.2.1
-
-Thanks to @warmspringwinds for the initial version of script.
+This script is designed to compute the theoretical amount of multiply-add operations
+in convulitional neural networks. It also can compute the number of parameters and
+print per-layer computational cost of a given network.
 
 Supported layers:
 - Convolution2d (including grouping)
@@ -11,6 +11,10 @@ Supported layers:
 - Linear
 - Upsample
 - Poolings (AvgPool2d, MaxPool2d and adaptive ones)
+
+Requirements: Pytorch 0.4.1 or 1.0, torchvision 0.2.1
+
+Thanks to @warmspringwinds for the initial version of script.
 
 ## Example
 ```python
