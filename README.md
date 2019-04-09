@@ -1,4 +1,5 @@
 # Flops counter for convolutional networks in pytorch framework
+[![Pypi version](https://img.shields.io/pypi/v/ptflops.svg)](https://pypi.org/project/ptflops/)
 
 This script is designed to compute the theoretical amount of multiply-add operations
 in convolutional neural networks. It also can compute the number of parameters and
@@ -16,9 +17,9 @@ Requirements: Pytorch 0.4.1 or 1.0, torchvision 0.2.1
 
 Thanks to @warmspringwinds for the initial version of script.
 
-## Install
+## Install the latest version
 ```bash
-pip install git+https://github.com/sovrasov/flops-counter.pytorch.git
+pip install --upgrade git+https://github.com/sovrasov/flops-counter.pytorch.git
 ```
 
 ## Example
