@@ -260,9 +260,14 @@ def conv_flops_counter_hook(conv_module, input, output):
 
 
 def batch_counter_hook(module, input, output):
-    # Can have multiple inputs, getting the first one
-    input = input[0]
-    batch_size = input.shape[0]
+    batch_size = 1
+    if len(input) > 0:
+        # Can have multiple inputs, getting the first one
+        input = input[0]
+        batch_size = len(input)
+    else:
+        pass
+        print('Warning! No positional inputs found for a module, assuming batch size is 1.')
     module.__batch_counter__ += batch_size
 
 
