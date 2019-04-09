@@ -192,23 +192,23 @@ def upsample_flops_counter_hook(module, input, output):
     output_elements_count = batch_size
     for val in output_size.shape[1:]:
         output_elements_count *= val
-    module.__flops__ += output_elements_count
+    module.__flops__ += int(output_elements_count)
 
 
 def relu_flops_counter_hook(module, input, output):
     active_elements_count = output.numel()
-    module.__flops__ += active_elements_count
+    module.__flops__ += int(active_elements_count)
 
 
 def linear_flops_counter_hook(module, input, output):
     input = input[0]
     batch_size = input.shape[0]
-    module.__flops__ += batch_size * input.shape[1] * output.shape[1]
+    module.__flops__ += int(batch_size * input.shape[1] * output.shape[1])
 
 
 def pool_flops_counter_hook(module, input, output):
     input = input[0]
-    module.__flops__ += np.prod(input.shape)
+    module.__flops__ += int(np.prod(input.shape))
 
 def bn_flops_counter_hook(module, input, output):
     module.affine
@@ -217,7 +217,7 @@ def bn_flops_counter_hook(module, input, output):
     batch_flops = np.prod(input.shape)
     if module.affine:
         batch_flops *= 2
-    module.__flops__ += batch_flops
+    module.__flops__ += int(batch_flops)
 
 def conv_flops_counter_hook(conv_module, input, output):
     # Can have multiple inputs, getting the first one
@@ -251,7 +251,7 @@ def conv_flops_counter_hook(conv_module, input, output):
 
     overall_flops = overall_conv_flops + bias_flops
 
-    conv_module.__flops__ += overall_flops
+    conv_module.__flops__ += int(overall_flops)
 
 
 def batch_counter_hook(module, input, output):
