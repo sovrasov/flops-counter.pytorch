@@ -16,6 +16,11 @@ Requirements: Pytorch 0.4.1 or 1.0, torchvision 0.2.1
 
 Thanks to @warmspringwinds for the initial version of script.
 
+## Install
+```bash
+pip install git+https://github.com/sovrasov/flops-counter.pytorch.git
+```
+
 ## Example
 ```python
 import torchvision.models as models
