@@ -17,5 +17,5 @@ if __name__ == '__main__':
     with torch.cuda.device(args.device):
         net = pt_models[args.model]()
         flops, params = get_model_complexity_info(net, (224, 224), as_strings=True, print_per_layer_stat=True)
-        print('Flops:  {}'.format(flops))
+        print('Flops: ' + flops)
         print('Params: ' + params)
