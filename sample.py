@@ -1,7 +1,7 @@
 import argparse
 import torchvision.models as models
 import torch
-from flops_counter import get_model_complexity_info
+from ptflops import get_model_complexity_info
 
 pt_models = { 'resnet18': models.resnet18, 'resnet50': models.resnet50,
               'alexnet': models.alexnet,
