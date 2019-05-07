@@ -7,6 +7,7 @@ print per-layer computational cost of a given network.
 
 Supported layers:
 - Convolution2d (including grouping)
+- ConvTranspose2d (including grouping)
 - BatchNorm2d
 - Activations (ReLU, PReLU, ELU, ReLU6, LeakyReLU)
 - Linear

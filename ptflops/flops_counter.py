@@ -183,7 +183,8 @@ def is_supported_instance(module):
     if isinstance(module, (torch.nn.Conv2d, torch.nn.ReLU, torch.nn.PReLU, torch.nn.ELU, \
                            torch.nn.LeakyReLU, torch.nn.ReLU6, torch.nn.Linear, \
                            torch.nn.MaxPool2d, torch.nn.AvgPool2d, torch.nn.BatchNorm2d, \
-                           torch.nn.Upsample, nn.AdaptiveMaxPool2d, nn.AdaptiveAvgPool2d)):
+                           torch.nn.Upsample, nn.AdaptiveMaxPool2d, nn.AdaptiveAvgPool2d, \
+                           nn.ConvTranspose2d)):
         return True
 
     return False
@@ -225,6 +226,32 @@ def bn_flops_counter_hook(module, input, output):
     if module.affine:
         batch_flops *= 2
     module.__flops__ += int(batch_flops)
+
+def deconv_flops_counter_hook(conv_module, input, output):
+    # Can have multiple inputs, getting the first one
+    input = input[0]
+
+    batch_size = input.shape[0]
+    input_height, input_width = input.shape[2:]
+
+    kernel_height, kernel_width = conv_module.kernel_size
+    in_channels = conv_module.in_channels
+    out_channels = conv_module.out_channels
+    groups = conv_module.groups
+
+    filters_per_channel = out_channels // groups
+    conv_per_position_flops = kernel_height * kernel_width * in_channels * filters_per_channel
+
+    active_elements_count = batch_size * input_height * input_width
+    overall_conv_flops = conv_per_position_flops * active_elements_count
+    bias_flops = 0
+    if conv_module.bias is not None:
+        output_height, output_width = output.shape[2:]
+        bias_flops = out_channels * batch_size * output_height * output_height
+    overall_flops = overall_conv_flops + bias_flops
+
+    conv_module.__flops__ += int(overall_flops)
+
 
 def conv_flops_counter_hook(conv_module, input, output):
     # Can have multiple inputs, getting the first one
@@ -316,6 +343,8 @@ def add_flops_counter_hook_function(module):
             handle = module.register_forward_hook(bn_flops_counter_hook)
         elif isinstance(module, torch.nn.Upsample):
             handle = module.register_forward_hook(upsample_flops_counter_hook)
+        elif isinstance(module, torch.nn.ConvTranspose2d):
+            handle = module.register_forward_hook(deconv_flops_counter_hook)
         else:
             handle = module.register_forward_hook(empty_flops_counter_hook)
         module.__flops_handle__ = handle
