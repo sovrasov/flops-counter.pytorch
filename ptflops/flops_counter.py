@@ -51,6 +51,8 @@ def params_to_string(params_num):
         return str(round(params_num / 10 ** 6, 2)) + ' M'
     elif params_num // 10 ** 3:
         return str(round(params_num / 10 ** 3, 2)) + ' k'
+    else:
+        return str(params_num)
 
 def print_model_with_flops(model, units='GMac', precision=3):
     total_flops = model.compute_average_flops_cost()
