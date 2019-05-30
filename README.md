@@ -6,15 +6,15 @@ in convolutional neural networks. It also can compute the number of parameters a
 print per-layer computational cost of a given network.
 
 Supported layers:
-- Conv2d/3d (including grouping)
+- Conv1d/2d/3d (including grouping)
 - ConvTranspose2d (including grouping)
-- BatchNorm2d/3d
+- BatchNorm1d/2d/3d
 - Activations (ReLU, PReLU, ELU, ReLU6, LeakyReLU)
 - Linear
 - Upsample
-- Poolings (AvgPool2d/3d, MaxPool2d/3d and adaptive ones)
+- Poolings (AvgPool1d/2d/3d, MaxPool1d/2d/3d and adaptive ones)
 
-Requirements: Pytorch 0.4.1 or 1.0, torchvision 0.2.1
+Requirements: Pytorch >= 0.4.1, torchvision >= 0.2.1
 
 Thanks to @warmspringwinds for the initial version of script.
 

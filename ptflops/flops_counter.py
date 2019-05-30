@@ -5,7 +5,7 @@ import numpy as np
 def get_model_complexity_info(model, input_res, print_per_layer_stat=True, as_strings=True,
                               input_constructor=None):
     assert type(input_res) is tuple
-    assert len(input_res) >= 3
+    assert len(input_res) >= 2
     flops_model = add_flops_counting_methods(model)
     flops_model.eval().start_flops_count()
     if input_constructor:
@@ -180,10 +180,13 @@ def remove_flops_mask(module):
 
 # ---- Internal functions
 def is_supported_instance(module):
-    if isinstance(module, (torch.nn.Conv2d, torch.nn.Conv3d, torch.nn.ReLU, torch.nn.PReLU, torch.nn.ELU, \
+    if isinstance(module, (torch.nn.Conv1d, torch.nn.Conv2d, torch.nn.Conv3d,
+                           torch.nn.ReLU, torch.nn.PReLU, torch.nn.ELU, \
                            torch.nn.LeakyReLU, torch.nn.ReLU6, torch.nn.Linear, \
                            torch.nn.MaxPool2d, torch.nn.AvgPool2d, torch.nn.BatchNorm2d, \
                            torch.nn.Upsample, nn.AdaptiveMaxPool2d, nn.AdaptiveAvgPool2d, \
+                           torch.nn.MaxPool1d, torch.nn.AvgPool1d, torch.nn.BatchNorm1d, \
+                           nn.AdaptiveMaxPool1d, nn.AdaptiveAvgPool1d, \
                            nn.ConvTranspose2d, torch.nn.BatchNorm3d,
                            torch.nn.MaxPool3d, torch.nn.AvgPool3d, nn.AdaptiveMaxPool3d, nn.AdaptiveAvgPool3d)):
         return True
@@ -330,7 +333,7 @@ def add_flops_counter_hook_function(module):
         if hasattr(module, '__flops_handle__'):
             return
 
-        if isinstance(module, (torch.nn.Conv2d, torch.nn.Conv3d)):
+        if isinstance(module, (torch.nn.Conv1d, torch.nn.Conv2d, torch.nn.Conv3d)):
             handle = module.register_forward_hook(conv_flops_counter_hook)
         elif isinstance(module, (torch.nn.ReLU, torch.nn.PReLU, torch.nn.ELU, \
                                  torch.nn.LeakyReLU, torch.nn.ReLU6)):
@@ -339,9 +342,10 @@ def add_flops_counter_hook_function(module):
             handle = module.register_forward_hook(linear_flops_counter_hook)
         elif isinstance(module, (torch.nn.AvgPool2d, torch.nn.MaxPool2d, nn.AdaptiveMaxPool2d, \
                                  nn.AdaptiveAvgPool2d, torch.nn.MaxPool3d, torch.nn.AvgPool3d, \
-                                 nn.AdaptiveMaxPool3d, nn.AdaptiveAvgPool3d)):
+                                 torch.nn.AvgPool1d, torch.nn.MaxPool1d, nn.AdaptiveMaxPool1d, \
+                                 nn.AdaptiveAvgPool1d, nn.AdaptiveMaxPool3d, nn.AdaptiveAvgPool3d)):
             handle = module.register_forward_hook(pool_flops_counter_hook)
-        elif isinstance(module, (torch.nn.BatchNorm2d, torch.nn.BatchNorm3d)):
+        elif isinstance(module, (torch.nn.BatchNorm1d, torch.nn.BatchNorm2d, torch.nn.BatchNorm3d)):
             handle = module.register_forward_hook(bn_flops_counter_hook)
         elif isinstance(module, torch.nn.Upsample):
             handle = module.register_forward_hook(upsample_flops_counter_hook)
