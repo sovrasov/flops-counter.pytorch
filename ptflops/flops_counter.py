@@ -1,9 +1,11 @@
+import sys
+
 import torch.nn as nn
 import torch
 import numpy as np
 
 def get_model_complexity_info(model, input_res, print_per_layer_stat=True, as_strings=True,
-                              input_constructor=None):
+                              input_constructor=None, ost=sys.stdout):
     assert type(input_res) is tuple
     assert len(input_res) >= 2
     flops_model = add_flops_counting_methods(model)
@@ -16,7 +18,7 @@ def get_model_complexity_info(model, input_res, print_per_layer_stat=True, as_st
         _ = flops_model(batch)
 
     if print_per_layer_stat:
-        print_model_with_flops(flops_model)
+        print_model_with_flops(flops_model, ost=ost)
     flops_count = flops_model.compute_average_flops_cost()
     params_count = get_model_parameters_number(flops_model)
     flops_model.stop_flops_count()
@@ -54,7 +56,7 @@ def params_to_string(params_num):
     else:
         return str(params_num)
 
-def print_model_with_flops(model, units='GMac', precision=3):
+def print_model_with_flops(model, units='GMac', precision=3, ost=sys.stdout):
     total_flops = model.compute_average_flops_cost()
 
     def accumulate_flops(self):
@@ -88,7 +90,7 @@ def print_model_with_flops(model, units='GMac', precision=3):
             del m.accumulate_flops
 
     model.apply(add_extra_repr)
-    print(model)
+    print(model, file=ost)
     model.apply(del_extra_repr)
 
 def get_model_parameters_number(model):
