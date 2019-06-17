@@ -1,5 +1,9 @@
 # ptflops versions log
 
+## v 0.3
+- Add 1d operators: batch norm, poolings, convolution.
+- Add ability to output extended report to any output stream.
+
 ## v 0.2
 - Add new operations: Conv3d, BatchNorm3d, MaxPool3d, AvgPool3d, ConvTranspose2d.
 - Add some results on widespread models to the README.
