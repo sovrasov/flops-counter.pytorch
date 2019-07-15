@@ -1,10 +1,13 @@
 import sys
 
-import torch.nn as nn
 import torch
+import torch.nn as nn
 import numpy as np
 
-def get_model_complexity_info(model, input_res, print_per_layer_stat=True, as_strings=True,
+
+def get_model_complexity_info(model, input_res,
+                              print_per_layer_stat=True,
+                              as_strings=True,
                               input_constructor=None, ost=sys.stdout):
     assert type(input_res) is tuple
     assert len(input_res) >= 2
@@ -14,7 +17,9 @@ def get_model_complexity_info(model, input_res, print_per_layer_stat=True, as_st
         input = input_constructor(input_res)
         _ = flops_model(**input)
     else:
-        batch = torch.FloatTensor(1, *input_res)
+        batch = torch.ones(()).new_empty((1, *input_res),
+                                         dtype=next(flops_model.parameters()).dtype,
+                                         device=next(flops_model.parameters()).device)
         _ = flops_model(batch)
 
     if print_per_layer_stat:
@@ -27,6 +32,7 @@ def get_model_complexity_info(model, input_res, print_per_layer_stat=True, as_st
         return flops_to_string(flops_count), params_to_string(params_count)
 
     return flops_count, params_count
+
 
 def flops_to_string(flops, units='GMac', precision=2):
     if units is None:
@@ -48,6 +54,7 @@ def flops_to_string(flops, units='GMac', precision=2):
         else:
             return str(flops) + ' Mac'
 
+
 def params_to_string(params_num):
     if params_num // 10 ** 6 > 0:
         return str(round(params_num / 10 ** 6, 2)) + ' M'
@@ -55,6 +62,7 @@ def params_to_string(params_num):
         return str(round(params_num / 10 ** 3, 2)) + ' k'
     else:
         return str(params_num)
+
 
 def print_model_with_flops(model, units='GMac', precision=3, ost=sys.stdout):
     total_flops = model.compute_average_flops_cost()
@@ -93,9 +101,11 @@ def print_model_with_flops(model, units='GMac', precision=3, ost=sys.stdout):
     print(model, file=ost)
     model.apply(del_extra_repr)
 
+
 def get_model_parameters_number(model):
     params_num = sum(p.numel() for p in model.parameters() if p.requires_grad)
     return params_num
+
 
 def add_flops_counting_methods(net_main_module):
     # adding additional methods to the existing module object,
