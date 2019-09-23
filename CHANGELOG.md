@@ -1,5 +1,8 @@
 # ptflops versions log
 
+## v 0.4
+- Allocate temporal blobs on the same device as model's parameters are located.
+
 ## v 0.3
 - Add 1d operators: batch norm, poolings, convolution.
 - Add ability to output extended report to any output stream.
