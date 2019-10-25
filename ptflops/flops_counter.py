@@ -12,7 +12,8 @@ def get_model_complexity_info(model, input_res,
     assert type(input_res) is tuple
     assert len(input_res) >= 2
     flops_model = add_flops_counting_methods(model)
-    flops_model.eval().start_flops_count()
+    flops_model.eval()
+    flops_model.start_flops_count()
     if input_constructor:
         input = input_constructor(input_res)
         _ = flops_model(**input)
