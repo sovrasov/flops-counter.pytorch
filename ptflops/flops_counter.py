@@ -27,10 +27,10 @@ def get_model_complexity_info(model, input_res,
 
         _ = flops_model(batch)
 
-    if print_per_layer_stat:
-        print_model_with_flops(flops_model, ost=ost)
     flops_count = flops_model.compute_average_flops_cost()
     params_count = get_model_parameters_number(flops_model)
+    if print_per_layer_stat:
+        print_model_with_flops(flops_model, flops_count, params_count, ost=ost)
     flops_model.stop_flops_count()
 
     if as_strings:
@@ -60,17 +60,28 @@ def flops_to_string(flops, units='GMac', precision=2):
             return str(flops) + ' Mac'
 
 
-def params_to_string(params_num):
-    if params_num // 10 ** 6 > 0:
-        return str(round(params_num / 10 ** 6, 2)) + ' M'
-    elif params_num // 10 ** 3:
-        return str(round(params_num / 10 ** 3, 2)) + ' k'
+def params_to_string(params_num, units=None, precision=2):
+    if units is None:
+        if params_num // 10 ** 6 > 0:
+            return str(round(params_num / 10 ** 6, 2)) + ' M'
+        elif params_num // 10 ** 3:
+            return str(round(params_num / 10 ** 3, 2)) + ' k'
+        else:
+            return str(params_num)
     else:
-        return str(params_num)
+        if units == 'M':
+            return str(round(params_num / 10.**6, precision)) + ' ' + units
+        elif units == 'K':
+            return str(round(params_num / 10.**3, precision)) + ' ' + units
+        else:
+            return str(params_num)
 
 
-def print_model_with_flops(model, units='GMac', precision=3, ost=sys.stdout):
-    total_flops = model.compute_average_flops_cost()
+def print_model_with_flops(model, total_flops, total_params, units='GMac',
+                           precision=3, ost=sys.stdout):
+
+    def accumulate_params(self):
+        return get_model_parameters_number(self)
 
     def accumulate_flops(self):
         if is_supported_instance(self):
@@ -82,13 +93,17 @@ def print_model_with_flops(model, units='GMac', precision=3, ost=sys.stdout):
             return sum
 
     def flops_repr(self):
+        accumulated_params_num = self.accumulate_params()
         accumulated_flops_cost = self.accumulate_flops()
-        return ', '.join([flops_to_string(accumulated_flops_cost, units=units, precision=precision),
+        return ', '.join([params_to_string(accumulated_params_num, units='M', precision=precision),
+                          '{:.3%} Params'.format(accumulated_params_num / total_params),
+                          flops_to_string(accumulated_flops_cost, units=units, precision=precision),
                           '{:.3%} MACs'.format(accumulated_flops_cost / total_flops),
                           self.original_extra_repr()])
 
     def add_extra_repr(m):
         m.accumulate_flops = accumulate_flops.__get__(m)
+        m.accumulate_params = accumulate_params.__get__(m)
         flops_extra_repr = flops_repr.__get__(m)
         if m.extra_repr != flops_extra_repr:
             m.original_extra_repr = m.extra_repr
