@@ -6,7 +6,8 @@ import torch
 
 from ptflops import get_model_complexity_info
 
-pt_models = {'resnet18': models.resnet18, 'resnet50': models.resnet50,
+pt_models = {'resnet18': models.resnet18,
+             'resnet50': models.resnet50,
              'alexnet': models.alexnet,
              'vgg16': models.vgg16,
              'squeezenet': models.squeezenet1_0,
@@ -27,12 +28,14 @@ if __name__ == '__main__':
     else:
         ost = open(args.result, 'w')
 
-    with torch.cuda.device(args.device):
-        net = pt_models[args.model]().cuda()
+    net = pt_models[args.model]()
 
-        flops, params = get_model_complexity_info(net, (3, 224, 224),
-                                                  as_strings=True,
-                                                  print_per_layer_stat=True,
-                                                  ost=ost)
-        print('Flops: ' + flops)
-        print('Params: ' + params)
+    if torch.cuda.is_available():
+        net.cuda(device=args.device)
+
+    flops, params = get_model_complexity_info(net, (3, 224, 224),
+                                              as_strings=True,
+                                              print_per_layer_stat=True,
+                                              ost=ost)
+    print('Flops: ' + flops)
+    print('Params: ' + params)
