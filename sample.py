@@ -37,5 +37,5 @@ if __name__ == '__main__':
                                               as_strings=True,
                                               print_per_layer_stat=True,
                                               ost=ost)
-    print('Flops: ' + flops)
-    print('Params: ' + params)
+    print('{:<30}  {:<8}'.format('Computational complexity: ', flops))
+    print('{:<30}  {:<8}'.format('Number of parameters: ', params))
