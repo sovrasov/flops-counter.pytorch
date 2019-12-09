@@ -1,5 +1,10 @@
 # ptflops versions log
 
+## v 0.5
+- Add per sequential number of parameters estimation.
+- Fix sample doesn't work without GPU.
+- Clarified output in sample.
+
 ## v 0.4
 - Allocate temporal blobs on the same device as model's parameters are located.
 
