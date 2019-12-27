@@ -239,13 +239,14 @@ def relu_flops_counter_hook(module, input, output):
 
 def linear_flops_counter_hook(module, input, output):
     input = input[0]
-    batch_size = input.shape[0]
-    module.__flops__ += int(batch_size * input.shape[1] * output.shape[1])
+    output_last_dim = output.shape[-1]  # pytorch checks dimensions, so here we don't care much
+    module.__flops__ += int(np.prod(input.shape) * output_last_dim)
 
 
 def pool_flops_counter_hook(module, input, output):
     input = input[0]
     module.__flops__ += int(np.prod(input.shape))
+
 
 def bn_flops_counter_hook(module, input, output):
     module.affine
@@ -255,6 +256,7 @@ def bn_flops_counter_hook(module, input, output):
     if module.affine:
         batch_flops *= 2
     module.__flops__ += int(batch_flops)
+
 
 def deconv_flops_counter_hook(conv_module, input, output):
     # Can have multiple inputs, getting the first one
