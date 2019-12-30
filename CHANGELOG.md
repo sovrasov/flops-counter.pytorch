@@ -1,5 +1,8 @@
 # ptflops versions log
 
+## v 0.5.2
+- Fix handling of intermediate dimensions in the Linear layer hook.
+
 ## v 0.5
 - Add per sequential number of parameters estimation.
 - Fix sample doesn't work without GPU.
