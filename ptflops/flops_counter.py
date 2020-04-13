@@ -7,6 +7,7 @@ Copyright (C) 2019 Sovrasov V. - All Rights Reserved
 '''
 
 import sys
+from functools import partial
 
 import torch
 import torch.nn as nn
@@ -16,12 +17,13 @@ import numpy as np
 def get_model_complexity_info(model, input_res,
                               print_per_layer_stat=True,
                               as_strings=True,
-                              input_constructor=None, ost=sys.stdout):
+                              input_constructor=None, ost=sys.stdout,
+                              verbose=False, ignore_modules=[]):
     assert type(input_res) is tuple
     assert len(input_res) >= 2
     flops_model = add_flops_counting_methods(model)
     flops_model.eval()
-    flops_model.start_flops_count()
+    flops_model.start_flops_count(ost=ost, verbose=verbose, ignore_list=ignore_modules)
     if input_constructor:
         input = input_constructor(input_res)
         _ = flops_model(**input)
@@ -35,8 +37,7 @@ def get_model_complexity_info(model, input_res,
 
         _ = flops_model(batch)
 
-    flops_count = flops_model.compute_average_flops_cost()
-    params_count = get_model_parameters_number(flops_model)
+    flops_count, params_count = flops_model.compute_average_flops_cost()
     if print_per_layer_stat:
         print_model_with_flops(flops_model, flops_count, params_count, ost=ost)
     flops_model.stop_flops_count()
@@ -89,7 +90,13 @@ def print_model_with_flops(model, total_flops, total_params, units='GMac',
                            precision=3, ost=sys.stdout):
 
     def accumulate_params(self):
-        return get_model_parameters_number(self)
+        if is_supported_instance(self):
+            return self.__params__
+        else:
+            sum = 0
+            for m in self.children():
+                sum += m.accumulate_params()
+            return sum
 
     def accumulate_flops(self):
         if is_supported_instance(self):
@@ -162,14 +169,16 @@ def compute_average_flops_cost(self):
 
     batches_count = self.__batch_counter__
     flops_sum = 0
+    params_sum = 0
     for module in self.modules():
         if is_supported_instance(module):
             flops_sum += module.__flops__
+            params_sum += module.__params__
 
-    return flops_sum / batches_count
+    return flops_sum / batches_count, params_sum
 
 
-def start_flops_count(self):
+def start_flops_count(self, **kwargs):
     """
     A method that will be available after add_flops_counting_methods() is called
     on a desired net object.
@@ -179,7 +188,25 @@ def start_flops_count(self):
 
     """
     add_batch_counter_hook_function(self)
-    self.apply(add_flops_counter_hook_function)
+
+    seen_types = set()
+    def add_flops_counter_hook_function(module, ost, verbose, ignore_list):
+        if type(module) in ignore_list:
+            seen_types.add(type(module))
+            if is_supported_instance(module):
+                module.__params__ = 0
+        elif is_supported_instance(module):
+            if hasattr(module, '__flops_handle__'):
+                return
+            handle = module.register_forward_hook(MODULES_MAPPING[type(module)])
+            module.__flops_handle__ = handle
+            seen_types.add(type(module))
+        else:
+            if verbose and not type(module) in (nn.Sequential, nn.ModuleList) and not type(module) in seen_types:
+                print('Warning: module ' + type(module).__name__ + ' is treated as a zero-op.', file=ost)
+            seen_types.add(type(module))
+
+    self.apply(partial(add_flops_counter_hook_function, **kwargs))
 
 
 def stop_flops_count(self):
@@ -352,7 +379,12 @@ def remove_batch_counter_hook_function(module):
 
 def add_flops_counter_variable_or_reset(module):
     if is_supported_instance(module):
+        if hasattr(module, '__flops__') or hasattr(module, '__params__'):
+            print('Warning: variables __flops__ or __params__ are already '
+                    'defined for the module' + type(module).__name__ +
+                    ' ptflops can affect your code!')
         module.__flops__ = 0
+        module.__params__ = get_model_parameters_number(module)
 
 
 MODULES_MAPPING = {
@@ -396,14 +428,6 @@ def is_supported_instance(module):
     if type(module) in MODULES_MAPPING:
         return True
     return False
-
-
-def add_flops_counter_hook_function(module):
-    if is_supported_instance(module):
-        if hasattr(module, '__flops_handle__'):
-            return
-        handle = module.register_forward_hook(MODULES_MAPPING[type(module)])
-        module.__flops_handle__ = handle
 
 
 def remove_flops_counter_hook_function(module):
