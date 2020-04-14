@@ -1,5 +1,9 @@
 # ptflops versions log
 
+## v 0.6
+- Add verbose option to log layers that are not supported by ptflops.
+- Add an option to filter a list of operations from the final result.
+
 ## v 0.5.2
 - Fix handling of intermediate dimensions in the Linear layer hook.
 

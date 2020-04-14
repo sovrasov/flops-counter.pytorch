@@ -1,11 +1,8 @@
-import os
-import shutil
-import sys
 from setuptools import setup, find_packages
 
 readme = open('README.md').read()
 
-VERSION = '0.5.2'
+VERSION = '0.6'
 
 requirements = [
     'torch',
