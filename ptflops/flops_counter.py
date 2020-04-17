@@ -7,6 +7,7 @@ Copyright (C) 2019 Sovrasov V. - All Rights Reserved
 '''
 
 import sys
+import abc
 from functools import partial
 
 import torch
@@ -18,9 +19,12 @@ def get_model_complexity_info(model, input_res,
                               print_per_layer_stat=True,
                               as_strings=True,
                               input_constructor=None, ost=sys.stdout,
-                              verbose=False, ignore_modules=[]):
+                              verbose=False, ignore_modules=[],
+                              custom_modules_hooks={}):
     assert type(input_res) is tuple
     assert len(input_res) >= 2
+    global CUSTOM_MODULES_MAPPING
+    CUSTOM_MODULES_MAPPING = custom_modules_hooks
     flops_model = add_flops_counting_methods(model)
     flops_model.eval()
     flops_model.start_flops_count(ost=ost, verbose=verbose, ignore_list=ignore_modules)
@@ -41,6 +45,7 @@ def get_model_complexity_info(model, input_res,
     if print_per_layer_stat:
         print_model_with_flops(flops_model, flops_count, params_count, ost=ost)
     flops_model.stop_flops_count()
+    CUSTOM_MODULES_MAPPING = {}
 
     if as_strings:
         return flops_to_string(flops_count), params_to_string(params_count)
@@ -198,7 +203,10 @@ def start_flops_count(self, **kwargs):
         elif is_supported_instance(module):
             if hasattr(module, '__flops_handle__'):
                 return
-            handle = module.register_forward_hook(MODULES_MAPPING[type(module)])
+            if type(module) in CUSTOM_MODULES_MAPPING:
+                handle = module.register_forward_hook(CUSTOM_MODULES_MAPPING[type(module)])
+            else:
+                handle = module.register_forward_hook(MODULES_MAPPING[type(module)])
             module.__flops_handle__ = handle
             seen_types.add(type(module))
         else:
@@ -386,6 +394,7 @@ def add_flops_counter_variable_or_reset(module):
         module.__flops__ = 0
         module.__params__ = get_model_parameters_number(module)
 
+CUSTOM_MODULES_MAPPING = {}
 
 MODULES_MAPPING = {
     # convolutions
@@ -425,7 +434,7 @@ MODULES_MAPPING = {
 
 
 def is_supported_instance(module):
-    if type(module) in MODULES_MAPPING:
+    if type(module) in MODULES_MAPPING or type(module) in CUSTOM_MODULES_MAPPING:
         return True
     return False
 
