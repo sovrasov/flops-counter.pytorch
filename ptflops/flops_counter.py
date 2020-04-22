@@ -366,6 +366,63 @@ def batch_counter_hook(module, input, output):
     module.__batch_counter__ += batch_size
 
 
+def rnn_flops(flops, rnn_module, w_ih, w_hh, input_size):
+    # matrix matrix mult ih state and internal state
+    flops += w_ih.shape[0]*w_ih.shape[1]
+    # matrix matrix mult hh state and internal state
+    flops += w_hh.shape[0]*w_hh.shape[1]
+    if isinstance(rnn_module, torch.nn.RNN):
+        # add both operations
+        flops += rnn_module.hidden_size 
+    elif isinstance(rnn_module, torch.nn.GRU):
+        # hadamard of r
+        flops += rnn_module.hidden_size
+        # adding operations from both states
+        flops += rnn_module.hidden_size*3
+        # last two hadamard product and add
+        flops += rnn_module.hidden_size*3
+    elif isinstance(rnn_module, torch.nn.LSTM):
+        # adding operations from both states
+        flops += rnn_module.hidden_size*4
+        # two hadamard product and add for C state
+        flops += rnn_module.hidden_size + rnn_module.hidden_size + rnn_module.hidden_size
+        # final hadamard
+        flops += rnn_module.hidden_size + rnn_module.hidden_size + rnn_module.hidden_size
+    return flops
+
+
+def rnn_flops_counter_hook(rnn_module, input, output):
+    """
+    Takes into account batch goes at first position, contrary
+    to pytorch common rule.
+    IF sigmoid and tanh are made hard, only a comparison FLOPS should be accurate
+    """
+    flops = 0
+    inp = input[0]
+    batch_size = inp.shape[0]
+    seq_length = inp.shape[1]
+    num_layers = rnn_module.num_layers
+
+    for i in range(num_layers):
+        w_ih = rnn_module.__getattr__("weight_ih_l" + str(i))
+        w_hh = rnn_module.__getattr__("weight_hh_l" + str(i))
+        if i == 0:
+            input_size = rnn_module.input_size
+        else:
+            input_size = rnn_module.hidden_size
+        flops = rnn_flops(flops, rnn_module, w_ih, w_hh, input_size)
+        if rnn_module.bias:
+            b_ih = rnn_module.__getattr__("bias_ih_l" + str(i))
+            b_hh = rnn_module.__getattr__("bias_hh_l" + str(i))
+            flops += b_ih.shape[0] + b_hh.shape[0]
+        
+    flops *= batch_size
+    flops *= seq_length
+    if rnn_module.bidirectional:
+        flops *= 2
+    rnn_module.__flops__ += int(flops)
+
+
 def add_batch_counter_variables_or_reset(module):
 
     module.__batch_counter__ = 0
@@ -430,6 +487,10 @@ MODULES_MAPPING = {
     torch.nn.Upsample: upsample_flops_counter_hook,
     # Deconvolution
     torch.nn.ConvTranspose2d: deconv_flops_counter_hook,
+    # RNN
+    torch.nn.RNN: rnn_flops_counter_hook,
+    torch.nn.GRU: rnn_flops_counter_hook,
+    torch.nn.LSTM: rnn_flops_counter_hook
 }
 
 
