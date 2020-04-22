@@ -368,9 +368,9 @@ def batch_counter_hook(module, input, output):
 
 def rnn_flops(flops, rnn_module, w_ih, w_hh, input_size):
     # matrix matrix mult ih state and internal state
-    flops += w_ih.shape[0]*(2*w_ih.shape[1] - 1)
+    flops += w_ih.shape[0]*w_ih.shape[1]
     # matrix matrix mult hh state and internal state
-    flops += w_hh.shape[0]*(2*w_hh.shape[1] - 1) 
+    flops += w_hh.shape[0]*w_hh.shape[1]
     if isinstance(rnn_module, torch.nn.RNN):
         # add both operations
         flops += rnn_module.hidden_size 
