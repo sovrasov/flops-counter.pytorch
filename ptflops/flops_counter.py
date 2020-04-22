@@ -7,7 +7,6 @@ Copyright (C) 2019 Sovrasov V. - All Rights Reserved
 '''
 
 import sys
-import abc
 from functools import partial
 
 import torch
@@ -373,7 +372,7 @@ def rnn_flops(flops, rnn_module, w_ih, w_hh, input_size):
     flops += w_hh.shape[0]*w_hh.shape[1]
     if isinstance(rnn_module, torch.nn.RNN):
         # add both operations
-        flops += rnn_module.hidden_size 
+        flops += rnn_module.hidden_size
     elif isinstance(rnn_module, torch.nn.GRU):
         # hadamard of r
         flops += rnn_module.hidden_size
@@ -415,7 +414,7 @@ def rnn_flops_counter_hook(rnn_module, input, output):
             b_ih = rnn_module.__getattr__("bias_ih_l" + str(i))
             b_hh = rnn_module.__getattr__("bias_hh_l" + str(i))
             flops += b_ih.shape[0] + b_hh.shape[0]
-        
+
     flops *= batch_size
     flops *= seq_length
     if rnn_module.bidirectional:

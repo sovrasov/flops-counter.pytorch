@@ -14,6 +14,9 @@ Supported layers:
 - Upsample
 - Poolings (AvgPool1d/2d/3d, MaxPool1d/2d/3d and adaptive ones)
 
+Experimental support:
+- RNN, LSTM, GRU (NLH layout is assumed).
+
 Requirements: Pytorch >= 0.4.1, torchvision >= 0.2.1
 
 Thanks to @warmspringwinds for the initial version of script.
