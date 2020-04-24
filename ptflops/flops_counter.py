@@ -156,9 +156,6 @@ def add_flops_counting_methods(net_main_module):
 
     net_main_module.reset_flops_count()
 
-    # Adding variables necessary for masked flops computation
-    net_main_module.apply(add_flops_mask_variable_or_reset)
-
     return net_main_module
 
 
@@ -239,17 +236,6 @@ def reset_flops_count(self):
     """
     add_batch_counter_variables_or_reset(self)
     self.apply(add_flops_counter_variable_or_reset)
-
-
-def add_flops_mask(module, mask):
-    def add_flops_mask_func(module):
-        if isinstance(module, nn.Conv2d):
-            module.__mask__ = mask
-    module.apply(add_flops_mask_func)
-
-
-def remove_flops_mask(module):
-    module.apply(add_flops_mask_variable_or_reset)
 
 
 # ---- Internal functions
@@ -334,11 +320,6 @@ def conv_flops_counter_hook(conv_module, input, output):
     conv_per_position_flops = np.prod(kernel_dims) * in_channels * filters_per_channel
 
     active_elements_count = batch_size * np.prod(output_dims)
-
-    if conv_module.__mask__ is not None:
-        # (b, 1, h, w)
-        flops_mask = conv_module.__mask__.expand(batch_size, 1, output_height, output_width)
-        active_elements_count = flops_mask.sum()
 
     overall_conv_flops = conv_per_position_flops * active_elements_count
 
@@ -524,10 +505,3 @@ def remove_flops_counter_hook_function(module):
         if hasattr(module, '__flops_handle__'):
             module.__flops_handle__.remove()
             del module.__flops_handle__
-# --- Masked flops counting
-
-
-# Also being run in the initialization
-def add_flops_mask_variable_or_reset(module):
-    if is_supported_instance(module):
-        module.__mask__ = None
