@@ -16,6 +16,7 @@ Supported layers:
 
 Experimental support:
 - RNN, LSTM, GRU (NLH layout is assumed).
+- RNNCell, LSTMCell, GRUCell.
 
 Requirements: Pytorch >= 0.4.1, torchvision >= 0.2.1
 
