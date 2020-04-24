@@ -1,5 +1,8 @@
 # ptflops versions log
 
+## v 0.6.1
+- Add experimental version of hooks for recurrent layers (RNN, GRU, LSTM).
+
 ## v 0.6
 - Add verbose option to log layers that are not supported by ptflops.
 - Add an option to filter a list of operations from the final result.
