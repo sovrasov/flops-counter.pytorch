@@ -243,7 +243,7 @@ def reset_flops_count(self):
 
 def add_flops_mask(module, mask):
     def add_flops_mask_func(module):
-        if isinstance(module, torch.nn.Conv2d):
+        if isinstance(module, nn.Conv2d):
             module.__mask__ = mask
     module.apply(add_flops_mask_func)
 
@@ -471,22 +471,22 @@ CUSTOM_MODULES_MAPPING = {}
 
 MODULES_MAPPING = {
     # convolutions
-    torch.nn.Conv1d: conv_flops_counter_hook,
-    torch.nn.Conv2d: conv_flops_counter_hook,
-    torch.nn.Conv3d: conv_flops_counter_hook,
+    nn.Conv1d: conv_flops_counter_hook,
+    nn.Conv2d: conv_flops_counter_hook,
+    nn.Conv3d: conv_flops_counter_hook,
     # activations
-    torch.nn.ReLU: relu_flops_counter_hook,
-    torch.nn.PReLU: relu_flops_counter_hook,
-    torch.nn.ELU: relu_flops_counter_hook,
-    torch.nn.LeakyReLU: relu_flops_counter_hook,
-    torch.nn.ReLU6: relu_flops_counter_hook,
+    nn.ReLU: relu_flops_counter_hook,
+    nn.PReLU: relu_flops_counter_hook,
+    nn.ELU: relu_flops_counter_hook,
+    nn.LeakyReLU: relu_flops_counter_hook,
+    nn.ReLU6: relu_flops_counter_hook,
     # poolings
-    torch.nn.MaxPool1d: pool_flops_counter_hook,
-    torch.nn.AvgPool1d: pool_flops_counter_hook,
-    torch.nn.AvgPool2d: pool_flops_counter_hook,
-    torch.nn.MaxPool2d: pool_flops_counter_hook,
-    torch.nn.MaxPool3d: pool_flops_counter_hook,
-    torch.nn.AvgPool3d: pool_flops_counter_hook,
+    nn.MaxPool1d: pool_flops_counter_hook,
+    nn.AvgPool1d: pool_flops_counter_hook,
+    nn.AvgPool2d: pool_flops_counter_hook,
+    nn.MaxPool2d: pool_flops_counter_hook,
+    nn.MaxPool3d: pool_flops_counter_hook,
+    nn.AvgPool3d: pool_flops_counter_hook,
     nn.AdaptiveMaxPool1d: pool_flops_counter_hook,
     nn.AdaptiveAvgPool1d: pool_flops_counter_hook,
     nn.AdaptiveMaxPool2d: pool_flops_counter_hook,
@@ -494,22 +494,22 @@ MODULES_MAPPING = {
     nn.AdaptiveMaxPool3d: pool_flops_counter_hook,
     nn.AdaptiveAvgPool3d: pool_flops_counter_hook,
     # BNs
-    torch.nn.BatchNorm1d: bn_flops_counter_hook,
-    torch.nn.BatchNorm2d: bn_flops_counter_hook,
-    torch.nn.BatchNorm3d: bn_flops_counter_hook,
+    nn.BatchNorm1d: bn_flops_counter_hook,
+    nn.BatchNorm2d: bn_flops_counter_hook,
+    nn.BatchNorm3d: bn_flops_counter_hook,
     # FC
-    torch.nn.Linear: linear_flops_counter_hook,
+    nn.Linear: linear_flops_counter_hook,
     # Upscale
-    torch.nn.Upsample: upsample_flops_counter_hook,
+    nn.Upsample: upsample_flops_counter_hook,
     # Deconvolution
-    torch.nn.ConvTranspose2d: deconv_flops_counter_hook,
+    nn.ConvTranspose2d: deconv_flops_counter_hook,
     # RNN
-    torch.nn.RNN: rnn_flops_counter_hook,
-    torch.nn.GRU: rnn_flops_counter_hook,
-    torch.nn.LSTM: rnn_flops_counter_hook,
-    torch.nn.RNNCell: rnn_cell_flops_counter_hook,
-    torch.nn.LSTMCell: rnn_cell_flops_counter_hook,
-    torch.nn.GRUCell: rnn_cell_flops_counter_hook
+    nn.RNN: rnn_flops_counter_hook,
+    nn.GRU: rnn_flops_counter_hook,
+    nn.LSTM: rnn_flops_counter_hook,
+    nn.RNNCell: rnn_cell_flops_counter_hook,
+    nn.LSTMCell: rnn_cell_flops_counter_hook,
+    nn.GRUCell: rnn_cell_flops_counter_hook
 }
 
 
