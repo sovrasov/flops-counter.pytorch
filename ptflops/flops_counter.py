@@ -316,9 +316,9 @@ def conv_flops_counter_hook(conv_module, input, output):
     groups = conv_module.groups
 
     filters_per_channel = out_channels // groups
-    conv_per_position_flops = np.prod(kernel_dims) * in_channels * filters_per_channel
+    conv_per_position_flops = int(np.prod(kernel_dims)) * in_channels * filters_per_channel
 
-    active_elements_count = batch_size * np.prod(output_dims)
+    active_elements_count = batch_size * int(np.prod(output_dims))
 
     overall_conv_flops = conv_per_position_flops * active_elements_count
 
