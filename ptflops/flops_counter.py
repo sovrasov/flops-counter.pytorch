@@ -174,8 +174,7 @@ def compute_average_flops_cost(self):
     for module in self.modules():
         if is_supported_instance(module):
             flops_sum += module.__flops__
-            params_sum += module.__params__
-
+    params_sum = get_model_parameters_number(self)
     return flops_sum / batches_count, params_sum
 
 
