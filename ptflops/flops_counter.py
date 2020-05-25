@@ -22,6 +22,7 @@ def get_model_complexity_info(model, input_res,
                               custom_modules_hooks={}):
     assert type(input_res) is tuple
     assert len(input_res) >= 1
+    assert isinstance(model, nn.Module)
     global CUSTOM_MODULES_MAPPING
     CUSTOM_MODULES_MAPPING = custom_modules_hooks
     flops_model = add_flops_counting_methods(model)
