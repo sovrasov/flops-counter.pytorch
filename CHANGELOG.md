@@ -1,5 +1,9 @@
 # ptflops versions log
 
+## v 0.6.2
+- Fix integer overflow on Windows.
+- Check if the input object is inherited from nn.Module.
+
 ## v 0.6.1
 - Add experimental version of hooks for recurrent layers (RNN, GRU, LSTM).
 
