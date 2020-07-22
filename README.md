@@ -32,7 +32,7 @@ for research purposes. For an instance, one can drop all convolutuions from the 
 specifying `ignore_modules=[torch.nn.Conv2d]`.
 
 ## Install the latest version
-From this PyPI:
+From PyPI:
 ```bash
 pip install ptflops
 ```
