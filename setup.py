@@ -15,7 +15,8 @@ setup(
     author='Vladislav Sovrasov',
     author_email='sovrasov.vlad@gmail.com',
     url='https://github.com/sovrasov/flops-counter.pytorch',
-    description='Flops counter for convolutional networks in pytorch framework',
+    description='Flops counter for convolutional networks in'
+                'pytorch framework',
     long_description=readme,
     long_description_content_type='text/markdown',
     license='MIT',

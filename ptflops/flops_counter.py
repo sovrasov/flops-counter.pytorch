@@ -10,7 +10,6 @@ import sys
 from functools import partial
 
 import numpy as np
-
 import torch
 import torch.nn as nn
 
@@ -28,7 +27,8 @@ def get_model_complexity_info(model, input_res,
     CUSTOM_MODULES_MAPPING = custom_modules_hooks
     flops_model = add_flops_counting_methods(model)
     flops_model.eval()
-    flops_model.start_flops_count(ost=ost, verbose=verbose, ignore_list=ignore_modules)
+    flops_model.start_flops_count(ost=ost, verbose=verbose,
+                                  ignore_list=ignore_modules)
     if input_constructor:
         input = input_constructor(input_res)
         _ = flops_model(**input)
@@ -116,9 +116,11 @@ def print_model_with_flops(model, total_flops, total_params, units='GMac',
     def flops_repr(self):
         accumulated_params_num = self.accumulate_params()
         accumulated_flops_cost = self.accumulate_flops()
-        return ', '.join([params_to_string(accumulated_params_num, units='M', precision=precision),
+        return ', '.join([params_to_string(accumulated_params_num,
+                                           units='M', precision=precision),
                           '{:.3%} Params'.format(accumulated_params_num / total_params),
-                          flops_to_string(accumulated_flops_cost, units=units, precision=precision),
+                          flops_to_string(accumulated_flops_cost,
+                                          units=units, precision=precision),
                           '{:.3%} MACs'.format(accumulated_flops_cost / total_flops),
                           self.original_extra_repr()])
 
@@ -154,7 +156,8 @@ def add_flops_counting_methods(net_main_module):
     net_main_module.start_flops_count = start_flops_count.__get__(net_main_module)
     net_main_module.stop_flops_count = stop_flops_count.__get__(net_main_module)
     net_main_module.reset_flops_count = reset_flops_count.__get__(net_main_module)
-    net_main_module.compute_average_flops_cost = compute_average_flops_cost.__get__(net_main_module)
+    net_main_module.compute_average_flops_cost = compute_average_flops_cost.__get__(
+                                                    net_main_module)
 
     net_main_module.reset_flops_count()
 
@@ -192,6 +195,7 @@ def start_flops_count(self, **kwargs):
     add_batch_counter_hook_function(self)
 
     seen_types = set()
+
     def add_flops_counter_hook_function(module, ost, verbose, ignore_list):
         if type(module) in ignore_list:
             seen_types.add(type(module))
@@ -201,14 +205,17 @@ def start_flops_count(self, **kwargs):
             if hasattr(module, '__flops_handle__'):
                 return
             if type(module) in CUSTOM_MODULES_MAPPING:
-                handle = module.register_forward_hook(CUSTOM_MODULES_MAPPING[type(module)])
+                handle = module.register_forward_hook(
+                                        CUSTOM_MODULES_MAPPING[type(module)])
             else:
                 handle = module.register_forward_hook(MODULES_MAPPING[type(module)])
             module.__flops_handle__ = handle
             seen_types.add(type(module))
         else:
-            if verbose and not type(module) in (nn.Sequential, nn.ModuleList) and not type(module) in seen_types:
-                print('Warning: module ' + type(module).__name__ + ' is treated as a zero-op.', file=ost)
+            if verbose and not type(module) in (nn.Sequential, nn.ModuleList) and \
+               not type(module) in seen_types:
+                print('Warning: module ' + type(module).__name__ +
+                      ' is treated as a zero-op.', file=ost)
             seen_types.add(type(module))
 
     self.apply(partial(add_flops_counter_hook_function, **kwargs))
@@ -260,7 +267,8 @@ def relu_flops_counter_hook(module, input, output):
 
 def linear_flops_counter_hook(module, input, output):
     input = input[0]
-    output_last_dim = output.shape[-1]  # pytorch checks dimensions, so here we don't care much
+    # pytorch checks dimensions, so here we don't care much
+    output_last_dim = output.shape[-1]
     module.__flops__ += int(np.prod(input.shape) * output_last_dim)
 
 
@@ -292,7 +300,8 @@ def deconv_flops_counter_hook(conv_module, input, output):
     groups = conv_module.groups
 
     filters_per_channel = out_channels // groups
-    conv_per_position_flops = kernel_height * kernel_width * in_channels * filters_per_channel
+    conv_per_position_flops = kernel_height * kernel_width * \
+        in_channels * filters_per_channel
 
     active_elements_count = batch_size * input_height * input_width
     overall_conv_flops = conv_per_position_flops * active_elements_count
@@ -318,7 +327,8 @@ def conv_flops_counter_hook(conv_module, input, output):
     groups = conv_module.groups
 
     filters_per_channel = out_channels // groups
-    conv_per_position_flops = int(np.prod(kernel_dims)) * in_channels * filters_per_channel
+    conv_per_position_flops = int(np.prod(kernel_dims)) * \
+        in_channels * filters_per_channel
 
     active_elements_count = batch_size * int(np.prod(output_dims))
 
@@ -343,7 +353,8 @@ def batch_counter_hook(module, input, output):
         batch_size = len(input)
     else:
         pass
-        print('Warning! No positional inputs found for a module, assuming batch size is 1.')
+        print('Warning! No positional inputs found for a module,'
+              ' assuming batch size is 1.')
     module.__batch_counter__ += batch_size
 
 
@@ -379,7 +390,8 @@ def rnn_flops_counter_hook(rnn_module, input, output):
     IF sigmoid and tanh are made hard, only a comparison FLOPS should be accurate
     """
     flops = 0
-    inp = input[0] # input is a tuble containing a sequence to process and (optionally) hidden state
+    # input is a tuple containing a sequence to process and (optionally) hidden state
+    inp = input[0]
     batch_size = inp.shape[0]
     seq_length = inp.shape[1]
     num_layers = rnn_module.num_layers
@@ -444,10 +456,11 @@ def add_flops_counter_variable_or_reset(module):
     if is_supported_instance(module):
         if hasattr(module, '__flops__') or hasattr(module, '__params__'):
             print('Warning: variables __flops__ or __params__ are already '
-                    'defined for the module' + type(module).__name__ +
-                    ' ptflops can affect your code!')
+                  'defined for the module' + type(module).__name__ +
+                  ' ptflops can affect your code!')
         module.__flops__ = 0
         module.__params__ = get_model_parameters_number(module)
+
 
 CUSTOM_MODULES_MAPPING = {}
 

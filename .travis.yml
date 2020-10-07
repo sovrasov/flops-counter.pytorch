@@ -1,0 +1,14 @@
+dist: bionic  # ubuntu 18.04
+language: python
+
+python:
+  - "3.6"
+
+cache: pip
+
+install:
+  - python setup.py develop --user
+
+script:
+  - flake8 .
+  - isort -rc --check-only --diff .

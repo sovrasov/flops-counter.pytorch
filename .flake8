@@ -1,0 +1,5 @@
+[flake8]
+application_import_names = ptflops
+import-order-style = pep8
+max-line-length = 90
+per-file-ignores = __init__.py:F401
