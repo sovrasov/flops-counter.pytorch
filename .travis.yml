@@ -7,8 +7,9 @@ python:
 cache: pip
 
 install:
+  - pip install -r test_requirements.txt
   - python setup.py develop --user
 
 script:
-  - flake8 .
-  - isort -rc --check-only --diff .
+  - python -m flake8 .
+  - python -m isort -rc --check-only --diff .
