@@ -1,9 +1,8 @@
-import sys
 import argparse
+import sys
 
-import torchvision.models as models
 import torch
-
+import torchvision.models as models
 from ptflops import get_model_complexity_info
 
 pt_models = {'resnet18': models.resnet18,

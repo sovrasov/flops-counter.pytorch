@@ -9,9 +9,10 @@ Copyright (C) 2019 Sovrasov V. - All Rights Reserved
 import sys
 from functools import partial
 
+import numpy as np
+
 import torch
 import torch.nn as nn
-import numpy as np
 
 
 def get_model_complexity_info(model, input_res,
