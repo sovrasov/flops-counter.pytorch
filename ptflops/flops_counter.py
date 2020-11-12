@@ -141,7 +141,7 @@ def print_model_with_flops(model, total_flops, total_params, units='GMac',
             del m.accumulate_flops
 
     model.apply(add_extra_repr)
-    print(model, file=ost)
+    print(repr(model), file=ost)
     model.apply(del_extra_repr)
 
 
