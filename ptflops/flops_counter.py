@@ -287,33 +287,6 @@ def bn_flops_counter_hook(module, input, output):
     module.__flops__ += int(batch_flops)
 
 
-def deconv_flops_counter_hook(conv_module, input, output):
-    # Can have multiple inputs, getting the first one
-    input = input[0]
-
-    batch_size = input.shape[0]
-    input_height, input_width = input.shape[2:]
-
-    kernel_height, kernel_width = conv_module.kernel_size
-    in_channels = conv_module.in_channels
-    out_channels = conv_module.out_channels
-    groups = conv_module.groups
-
-    filters_per_channel = out_channels // groups
-    conv_per_position_flops = kernel_height * kernel_width * \
-        in_channels * filters_per_channel
-
-    active_elements_count = batch_size * input_height * input_width
-    overall_conv_flops = conv_per_position_flops * active_elements_count
-    bias_flops = 0
-    if conv_module.bias is not None:
-        output_height, output_width = output.shape[2:]
-        bias_flops = out_channels * batch_size * output_height * output_height
-    overall_flops = overall_conv_flops + bias_flops
-
-    conv_module.__flops__ += int(overall_flops)
-
-
 def conv_flops_counter_hook(conv_module, input, output):
     # Can have multiple inputs, getting the first one
     input = input[0]
@@ -497,7 +470,9 @@ MODULES_MAPPING = {
     # Upscale
     nn.Upsample: upsample_flops_counter_hook,
     # Deconvolution
-    nn.ConvTranspose2d: deconv_flops_counter_hook,
+    nn.ConvTranspose1d: conv_flops_counter_hook,
+    nn.ConvTranspose2d: conv_flops_counter_hook,
+    nn.ConvTranspose3d: conv_flops_counter_hook,
     # RNN
     nn.RNN: rnn_flops_counter_hook,
     nn.GRU: rnn_flops_counter_hook,
