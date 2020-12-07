@@ -1,5 +1,12 @@
 # ptflops versions log
 
+## v 0.6.4
+- Fix unaccounted bias flops in Linear.
+- Fix hook for ConvTranspose*d.
+
+## v 0.6.3
+- Implicitly use repr to print a model with extra_repr.
+
 ## v 0.6.2
 - Fix integer overflow on Windows.
 - Check if the input object is inherited from nn.Module.
