@@ -91,6 +91,14 @@ def params_to_string(params_num, units=None, precision=2):
         else:
             return str(params_num)
 
+def accumulate_flops(self):
+        if is_supported_instance(self):
+            return self.__flops__
+        else:
+            sum = 0
+            for m in self.children():
+                sum += m.accumulate_flops()
+            return sum
 
 def print_model_with_flops(model, total_flops, total_params, units='GMac',
                            precision=3, ost=sys.stdout):
@@ -104,18 +112,9 @@ def print_model_with_flops(model, total_flops, total_params, units='GMac',
                 sum += m.accumulate_params()
             return sum
 
-    def accumulate_flops(self):
-        if is_supported_instance(self):
-            return self.__flops__ / model.__batch_counter__
-        else:
-            sum = 0
-            for m in self.children():
-                sum += m.accumulate_flops()
-            return sum
-
     def flops_repr(self):
         accumulated_params_num = self.accumulate_params()
-        accumulated_flops_cost = self.accumulate_flops()
+        accumulated_flops_cost = self.accumulate_flops() / model.__batch_counter__
         return ', '.join([params_to_string(accumulated_params_num,
                                            units='M', precision=precision),
                           '{:.3%} Params'.format(accumulated_params_num / total_params),
@@ -173,14 +172,17 @@ def compute_average_flops_cost(self):
 
     """
 
-    batches_count = self.__batch_counter__
-    flops_sum = 0
-    params_sum = 0
-    for module in self.modules():
-        if is_supported_instance(module):
-            flops_sum += module.__flops__
+    for m in self.modules():
+        m.accumulate_flops = accumulate_flops.__get__(m)
+
+    flops_sum = self.accumulate_flops()
+
+    for m in self.modules():
+        if hasattr(m, 'accumulate_flops'):
+            del m.accumulate_flops
+
     params_sum = get_model_parameters_number(self)
-    return flops_sum / batches_count, params_sum
+    return flops_sum / self.__batch_counter__, params_sum
 
 
 def start_flops_count(self, **kwargs):
