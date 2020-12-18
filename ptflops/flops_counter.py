@@ -91,14 +91,16 @@ def params_to_string(params_num, units=None, precision=2):
         else:
             return str(params_num)
 
+
 def accumulate_flops(self):
-        if is_supported_instance(self):
-            return self.__flops__
-        else:
-            sum = 0
-            for m in self.children():
-                sum += m.accumulate_flops()
-            return sum
+    if is_supported_instance(self):
+        return self.__flops__
+    else:
+        sum = 0
+        for m in self.children():
+            sum += m.accumulate_flops()
+        return sum
+
 
 def print_model_with_flops(model, total_flops, total_params, units='GMac',
                            precision=3, ost=sys.stdout):
