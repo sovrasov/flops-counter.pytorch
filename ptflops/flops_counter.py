@@ -104,6 +104,8 @@ def accumulate_flops(self):
 
 def print_model_with_flops(model, total_flops, total_params, units='GMac',
                            precision=3, ost=sys.stdout):
+    if total_flops < 1:
+        total_flops = 1
 
     def accumulate_params(self):
         if is_supported_instance(self):
