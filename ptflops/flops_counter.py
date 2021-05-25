@@ -428,20 +428,22 @@ def multihead_attention_counter_hook(multihead_attention_module, input, output):
 
     # initial projections
     flops = q.shape[0] * q.shape[2] * embed_dim + \
-            k.shape[0] * k.shape[2] * kdim + \
-            v.shape[0] * v.shape[2] * vdim
+        k.shape[0] * k.shape[2] * kdim + \
+        v.shape[0] * v.shape[2] * vdim
+    if multihead_attention_module.in_proj_bias is not None:
+        flops += (q.shape[0] + k.shape[0] + v.shape[0]) * embed_dim
 
     # attention heads: scale, matmul, softmax, matmul
     head_dim = embed_dim // num_heads
     head_flops = q.shape[0] * head_dim + \
-                 head_dim * q.shape[0] * k.shape[0] + \
-                 q.shape[0] * k.shape[0] + \
-                 q.shape[0] * k.shape[0] * head_dim
+        head_dim * q.shape[0] * k.shape[0] + \
+        q.shape[0] * k.shape[0] + \
+        q.shape[0] * k.shape[0] * head_dim
 
     flops += num_heads * head_flops
 
-    # final projection
-    flops += q.shape[0] * embed_dim * embed_dim
+    # final projection, bias is always enabled
+    flops += q.shape[0] * embed_dim * (embed_dim + 1)
 
     flops *= batch_size
     multihead_attention_module.__flops__ += int(flops)
