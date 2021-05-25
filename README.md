@@ -18,8 +18,9 @@ Supported layers:
 Experimental support:
 - RNN, LSTM, GRU (NLH layout is assumed).
 - RNNCell, LSTMCell, GRUCell.
+- MultiheadAttention.
 
-Requirements: Pytorch >= 0.4.1, torchvision >= 0.2.1
+Requirements: Pytorch >= 1.1, torchvision >= 0.3
 
 Thanks to @warmspringwinds for the initial version of script.
 
