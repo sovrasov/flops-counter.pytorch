@@ -412,6 +412,41 @@ def rnn_cell_flops_counter_hook(rnn_cell_module, input, output):
     rnn_cell_module.__flops__ += int(flops)
 
 
+def multihead_attention_counter_hook(multihead_attention_module, input, output):
+    flops = 0
+    q, k, v = input
+    batch_size = q.shape[1]
+
+    num_heads = multihead_attention_module.num_heads
+    embed_dim = multihead_attention_module.embed_dim
+    kdim = multihead_attention_module.kdim
+    vdim = multihead_attention_module.vdim
+    if kdim is None:
+        kdim = embed_dim
+    if vdim is None:
+        vdim = embed_dim
+
+    # initial projections
+    flops = q.shape[0] * q.shape[2] * embed_dim + \
+            k.shape[0] * k.shape[2] * kdim + \
+            v.shape[0] * v.shape[2] * vdim
+
+    # attention heads: scale, matmul, softmax, matmul
+    head_dim = embed_dim // num_heads
+    head_flops = q.shape[0] * head_dim + \
+                 head_dim * q.shape[0] * k.shape[0] + \
+                 q.shape[0] * k.shape[0] + \
+                 q.shape[0] * k.shape[0] * head_dim
+
+    flops += num_heads * head_flops
+
+    # final projection
+    flops += q.shape[0] * embed_dim * embed_dim
+
+    flops *= batch_size
+    multihead_attention_module.__flops__ += int(flops)
+
+
 def add_batch_counter_variables_or_reset(module):
 
     module.__batch_counter__ = 0
@@ -485,7 +520,8 @@ MODULES_MAPPING = {
     nn.LSTM: rnn_flops_counter_hook,
     nn.RNNCell: rnn_cell_flops_counter_hook,
     nn.LSTMCell: rnn_cell_flops_counter_hook,
-    nn.GRUCell: rnn_cell_flops_counter_hook
+    nn.GRUCell: rnn_cell_flops_counter_hook,
+    nn.MultiheadAttention: multihead_attention_counter_hook
 }
 
 
