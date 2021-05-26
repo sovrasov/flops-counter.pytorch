@@ -1,5 +1,8 @@
 # ptflops versions log
 
+## v 0.6.5
+- Add a hook for MultiheadAttention.
+
 ## v 0.6.4
 - Fix unaccounted bias flops in Linear.
 - Fix hook for ConvTranspose*d.
