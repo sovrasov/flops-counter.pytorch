@@ -1,5 +1,8 @@
 # ptflops versions log
 
+## v 0.6.6
+- Add hooks for Instance and Group norms.
+
 ## v 0.6.5
 - Add a hook for MultiheadAttention.
 
