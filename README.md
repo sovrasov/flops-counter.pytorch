@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.com/sovrasov/flops-counter.pytorch.svg?branch=master)](https://travis-ci.com/sovrasov/flops-counter.pytorch)
 
 This script is designed to compute the theoretical amount of multiply-add operations
-in convolutional neural networks. It also can compute the number of parameters and
+in convolutional neural networks. It can also compute the number of parameters and
 print per-layer computational cost of a given network.
 
 Supported layers:
