@@ -417,7 +417,9 @@ def multihead_attention_counter_hook(multihead_attention_module, input, output):
 
     q, k, v = input
 
-    if multihead_attention_module.batch_first:
+    batch_first = multihead_attention_module.batch_first \
+        if hasattr(multihead_attention_module, 'batch_first') else False
+    if batch_first:
         batch_size = q.shape[0]
         len_idx = 1
     else:
