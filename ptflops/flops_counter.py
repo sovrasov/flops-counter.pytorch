@@ -440,28 +440,37 @@ def multihead_attention_counter_hook(multihead_attention_module, input, output):
     if multihead_attention_module.kdim is None:
         assert kdim == qdim
     if multihead_attention_module.vdim is None:
-        assert vdim== qdim 
+        assert vdim == qdim
 
-    # initial projections
-    flops = qlen * qdim * qdim + \
-        klen * kdim * kdim + \
-        vlen * vdim * vdim
+    flops = 0
+
+    # Q scaling
+    flops += qlen * qdim
+
+    # Initial projections
+    flops += (
+        (qlen * qdim * qdim)  # QW
+        + (klen * kdim * kdim)  # KW
+        + (vlen * vdim * vdim)  # VW
+    )
 
     if multihead_attention_module.in_proj_bias is not None:
         flops += (qlen + klen + vlen) * qdim
 
     # attention heads: scale, matmul, softmax, matmul
-    head_dim = qdim // num_heads
+    qk_head_dim = qdim // num_heads
+    v_head_dim = vdim // num_heads
 
-    head_flops = qlen * head_dim + \
-        head_dim * qlen * klen + \
-        qlen * klen + \
-        qlen * klen * head_dim
+    head_flops = (
+        (qlen * klen * qk_head_dim)  # QK^T
+        + (qlen * klen)  # softmax
+        + (qlen * klen * v_head_dim)  # AV
+    )
 
     flops += num_heads * head_flops
 
     # final projection, bias is always enabled
-    flops += qlen * qdim * (qdim + 1)
+    flops += qlen * vdim * (vdim + 1)
 
     flops *= batch_size
     multihead_attention_module.__flops__ += int(flops)
