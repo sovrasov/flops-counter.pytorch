@@ -1,5 +1,8 @@
 # ptflops versions log
 
+## v 0.6.7
+- Add batch_first flag support in MultiheadAttention hook
+
 ## v 0.6.6
 - Add hooks for Instance and Group norms.
 
