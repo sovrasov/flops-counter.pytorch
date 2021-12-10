@@ -414,36 +414,54 @@ def rnn_cell_flops_counter_hook(rnn_cell_module, input, output):
 
 def multihead_attention_counter_hook(multihead_attention_module, input, output):
     flops = 0
+
     q, k, v = input
-    batch_size = q.shape[1]
+
+    if multihead_attention_module.batch_first:
+        batch_size = q.shape[0]
+        len_idx = 1
+    else:
+        batch_size = q.shape[1]
+        len_idx = 0
+
+    dim_idx = 2
+
+    qdim = q.shape[dim_idx]
+    kdim = k.shape[dim_idx]
+    vdim = v.shape[dim_idx]
+
+    qlen = q.shape[len_idx]
+    klen = k.shape[len_idx]
+    vlen = v.shape[len_idx]
 
     num_heads = multihead_attention_module.num_heads
-    embed_dim = multihead_attention_module.embed_dim
-    kdim = multihead_attention_module.kdim
-    vdim = multihead_attention_module.vdim
-    if kdim is None:
-        kdim = embed_dim
-    if vdim is None:
-        vdim = embed_dim
+    assert qdim == multihead_attention_module.embed_dim
+
+    if multihead_attention_module.kdim is None:
+        assert kdim == qdim
+    if multihead_attention_module.vdim is None:
+        assert vdim== qdim 
 
     # initial projections
-    flops = q.shape[0] * q.shape[2] * embed_dim + \
-        k.shape[0] * k.shape[2] * kdim + \
-        v.shape[0] * v.shape[2] * vdim
+    flops = qlen * qdim * qdim + \
+        klen * kdim * kdim + \
+        vlen * vdim * vdim
+
     if multihead_attention_module.in_proj_bias is not None:
-        flops += (q.shape[0] + k.shape[0] + v.shape[0]) * embed_dim
+        flops += (qlen + klen + vlen) * qdim
 
     # attention heads: scale, matmul, softmax, matmul
-    head_dim = embed_dim // num_heads
-    head_flops = q.shape[0] * head_dim + \
-        head_dim * q.shape[0] * k.shape[0] + \
-        q.shape[0] * k.shape[0] + \
-        q.shape[0] * k.shape[0] * head_dim
+    head_dim = qdim // num_heads
+
+    head_flops = qlen * head_dim + \
+        head_dim * qlen * klen + \
+        qlen * klen + \
+        qlen * klen * head_dim
 
     flops += num_heads * head_flops
 
     # final projection, bias is always enabled
-    flops += q.shape[0] * embed_dim * (embed_dim + 1)
+    flops += qlen * qdim * (qdim + 1)
 
     flops *= batch_size
     multihead_attention_module.__flops__ += int(flops)
