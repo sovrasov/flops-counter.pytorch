@@ -10,7 +10,7 @@ Supported layers:
 - Conv1d/2d/3d (including grouping)
 - ConvTranspose1d/2d/3d (including grouping)
 - BatchNorm1d/2d/3d, GroupNorm, InstanceNorm1d/2d/3d
-- Activations (ReLU, PReLU, ELU, ReLU6, LeakyReLU)
+- Activations (ReLU, PReLU, ELU, ReLU6, LeakyReLU, GELU)
 - Linear
 - Upsample
 - Poolings (AvgPool1d/2d/3d, MaxPool1d/2d/3d and adaptive ones)

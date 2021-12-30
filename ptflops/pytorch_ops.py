@@ -274,3 +274,6 @@ MODULES_MAPPING = {
     nn.GRUCell: rnn_cell_flops_counter_hook,
     nn.MultiheadAttention: multihead_attention_counter_hook
 }
+
+if hasattr(nn, 'GELU'):
+    MODULES_MAPPING[nn.GELU] = relu_flops_counter_hook
