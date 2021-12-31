@@ -7,9 +7,10 @@ Copyright (C) 2021 Sovrasov V. - All Rights Reserved
 '''
 
 import sys
+from functools import partial
+
 import torch
 import torch.nn as nn
-from functools import partial
 
 from .pytorch_ops import CUSTOM_MODULES_MAPPING, MODULES_MAPPING
 from .utils import flops_to_string, params_to_string
@@ -220,6 +221,7 @@ def batch_counter_hook(module, input, output):
         print('Warning! No positional inputs found for a module,'
               ' assuming batch size is 1.')
     module.__batch_counter__ += batch_size
+
 
 def add_batch_counter_variables_or_reset(module):
 

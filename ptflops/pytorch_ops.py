@@ -6,8 +6,8 @@ Copyright (C) 2021 Sovrasov V. - All Rights Reserved
  * this file. If not visit https://opensource.org/licenses/MIT
 '''
 
-import torch.nn as nn
 import numpy as np
+import torch.nn as nn
 
 
 def empty_flops_counter_hook(module, input, output):

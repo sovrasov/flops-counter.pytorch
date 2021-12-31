@@ -7,10 +7,10 @@ Copyright (C) 2019-2021 Sovrasov V. - All Rights Reserved
 '''
 
 import sys
+
 import torch.nn as nn
 
 from .pytorch_engine import get_flops_pytorch
-from .pytorch_ops import CUSTOM_MODULES_MAPPING
 from .utils import flops_to_string, params_to_string
 
 
@@ -24,14 +24,14 @@ def get_model_complexity_info(model, input_res,
     assert len(input_res) >= 1
     assert isinstance(model, nn.Module)
 
-    global CUSTOM_MODULES_MAPPING
-    CUSTOM_MODULES_MAPPING = custom_modules_hooks
     if backend == 'pytorch':
-        flops_count, params_count = get_flops_pytorch(model, input_res, print_per_layer_stat,
-                                                      input_constructor, ost, verbose, ignore_modules)
+        flops_count, params_count = get_flops_pytorch(model, input_res,
+                                                      print_per_layer_stat,
+                                                      input_constructor, ost,
+                                                      verbose, ignore_modules,
+                                                      custom_modules_hooks)
     else:
         raise ValueError('Wrong backend name')
-    CUSTOM_MODULES_MAPPING = {}
 
     if as_strings:
         return flops_to_string(flops_count), params_to_string(params_count)
