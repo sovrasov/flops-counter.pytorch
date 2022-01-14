@@ -1,5 +1,9 @@
 # ptflops versions log
 
+## v 0.6.8
+- Add support of GELU activation.
+- Fix per layer statistic output in case of zero parameters number.
+
 ## v 0.6.7
 - Add batch_first flag support in MultiheadAttention hook
 
