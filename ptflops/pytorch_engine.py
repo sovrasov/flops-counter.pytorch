@@ -197,6 +197,7 @@ def stop_flops_count(self):
     """
     remove_batch_counter_hook_function(self)
     self.apply(remove_flops_counter_hook_function)
+    self.apply(remove_flops_counter_variables)
 
 
 def reset_flops_count(self):
@@ -250,6 +251,8 @@ def add_flops_counter_variable_or_reset(module):
             print('Warning: variables __flops__ or __params__ are already '
                   'defined for the module' + type(module).__name__ +
                   ' ptflops can affect your code!')
+            module.__ptflops_backup_flops__ = module.__flops__
+            module.__ptflops_backup_params__ = module.__params__
         module.__flops__ = 0
         module.__params__ = get_model_parameters_number(module)
 
@@ -265,3 +268,15 @@ def remove_flops_counter_hook_function(module):
         if hasattr(module, '__flops_handle__'):
             module.__flops_handle__.remove()
             del module.__flops_handle__
+
+
+def remove_flops_counter_variables(module):
+    if is_supported_instance(module):
+        if hasattr(module, '__flops__'):
+            del module.__flops__
+            if hasattr(module, '__ptflops_backup_flops__'):
+                module.__flops__ = module.__ptflops_backup_flops__
+        if hasattr(module, '__params__'):
+            del module.__params__
+            if hasattr(module, '__ptflops_backup_params__'):
+                module.__params__ = module.__ptflops_backup_params__
