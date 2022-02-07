@@ -60,11 +60,12 @@ def conv_flops_counter_hook(conv_module, input, output):
     kernel_dims = list(conv_module.kernel_size)
     in_channels = conv_module.in_channels
     out_channels = conv_module.out_channels
+    strides = list(conv_module.stride)
     groups = conv_module.groups
 
     filters_per_channel = out_channels // groups
     conv_per_position_flops = int(np.prod(kernel_dims)) * \
-        in_channels * filters_per_channel
+        in_channels * filters_per_channel// int(np.prod(strides))
 
     active_elements_count = batch_size * int(np.prod(output_dims))
 
