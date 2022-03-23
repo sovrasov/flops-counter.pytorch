@@ -36,7 +36,7 @@ def get_model_complexity_info(model, input_res,
 
     if as_strings:
         flops_string = flops_to_string(flops_count, units=flop_units, precision=precision)
-        prams_string = params_to_string(params_count, units=param_units, precision=precision)
+        params_string = params_to_string(params_count, units=param_units, precision=precision)
         return flops_string, params_string
 
     return flops_count, params_count
