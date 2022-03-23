@@ -35,6 +35,6 @@ def get_model_complexity_info(model, input_res,
         raise ValueError('Wrong backend name')
 
     if as_strings:
-        return flops_to_string(flops_count, precision=precision), params_to_string(params_count=precision)
+        return flops_to_string(flops_count, precision=precision), params_to_string(params_count,precision=precision)
 
     return flops_count, params_count
