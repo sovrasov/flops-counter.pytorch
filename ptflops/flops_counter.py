@@ -30,7 +30,10 @@ def get_model_complexity_info(model, input_res,
                                                       print_per_layer_stat,
                                                       input_constructor, ost,
                                                       verbose, ignore_modules,
-                                                      custom_modules_hooks)
+                                                      custom_modules_hooks,
+                                                      precision=precision,
+                                                      flop_units=flop_units,
+                                                      param_units=param_units)
     else:
         raise ValueError('Wrong backend name')
 
