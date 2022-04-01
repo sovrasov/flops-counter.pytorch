@@ -31,9 +31,9 @@ def flops_to_string(flops, units=None, precision=2):
 def params_to_string(params_num, units=None, precision=2):
     if units is None:
         if params_num // 10 ** 6 > 0:
-            return str(round(params_num / 10 ** 6, 2)) + ' M'
+            return str(round(params_num / 10 ** 6, precision)) + ' M'
         elif params_num // 10 ** 3:
-            return str(round(params_num / 10 ** 3, 2)) + ' k'
+            return str(round(params_num / 10 ** 3, precision)) + ' k'
         else:
             return str(params_num)
     else:
