@@ -1,5 +1,9 @@
 # ptflops versions log
 
+## v 0.6.9
+- Fix unnecessary warnings.
+- Improve per layer statistics output.
+
 ## v 0.6.8
 - Add support of GELU activation.
 - Fix per layer statistic output in case of zero parameters number.
