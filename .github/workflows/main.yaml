@@ -42,7 +42,6 @@ jobs:
       run: |
         python setup.py develop
     - name: Testing with pytest
-      if: False
       run: |
         python -m pytest . -s
     - name: Linting with flake8
