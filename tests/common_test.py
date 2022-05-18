@@ -1,4 +1,3 @@
-import numpy as np
 import pytest
 import torch.nn as nn
 
@@ -19,7 +18,7 @@ class TestOperations:
         assert params == 3 * 3 * 2 * 3 + 2
         assert int(macs) == 2759904
 
-    def test_conv(self):
+    def test_fc(self):
         net = nn.Sequential(nn.Linear(3, 2, bias=True))
         macs, params = get_model_complexity_info(net, (3,),
                                                  as_strings=False,
