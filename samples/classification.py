@@ -2,7 +2,9 @@ import argparse
 import sys
 
 import torch
-import torchvision.models as models
+import torchvision
+from packaging import version
+from torchvision import models as models
 
 from ptflops import get_model_complexity_info
 
@@ -13,6 +15,10 @@ pt_models = {'resnet18': models.resnet18,
              'squeezenet': models.squeezenet1_0,
              'densenet': models.densenet161,
              'inception': models.inception_v3}
+
+if version.parse(torchvision.__version__) > version.parse('0.14.1'):
+    pt_models['vit_b_16'] = models.vit_b_16
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='ptflops sample script')
