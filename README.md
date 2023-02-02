@@ -1,4 +1,4 @@
-# Flops counter for convolutional networks in pytorch framework
+# Flops counting tool for neural networks in pytorch framework
 [![Pypi version](https://img.shields.io/pypi/v/ptflops.svg)](https://pypi.org/project/ptflops/)
 [![Build Status](https://travis-ci.com/sovrasov/flops-counter.pytorch.svg?branch=master)](https://travis-ci.com/sovrasov/flops-counter.pytorch)
 
@@ -56,6 +56,17 @@ with torch.cuda.device(0):
                                            print_per_layer_stat=True, verbose=True)
   print('{:<30}  {:<8}'.format('Computational complexity: ', macs))
   print('{:<30}  {:<8}'.format('Number of parameters: ', params))
+```
+
+## Citation
+If ptflops was useful for your paper or tech report, please cite me:
+```
+@online{ptflops,
+  author = {Vladislav Sovrasov},
+  title = {ptflops: a flops counting tool for neural networks in pytorch framework},
+  year = 2018-2023,
+  url = {https://github.com/sovrasov/flops-counter.pytorch},
+}
 ```
 
 ## Benchmark
