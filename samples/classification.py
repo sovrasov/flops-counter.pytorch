@@ -14,9 +14,10 @@ pt_models = {'resnet18': models.resnet18,
              'vgg16': models.vgg16,
              'squeezenet': models.squeezenet1_0,
              'densenet': models.densenet161,
-             'inception': models.inception_v3}
+             'inception': models.inception_v3,
+             'convnext_base': models.convnext_base}
 
-if version.parse(torchvision.__version__) > version.parse('0.14.1'):
+if version.parse(torchvision.__version__) > version.parse('0.15'):
     pt_models['vit_b_16'] = models.vit_b_16
 
 

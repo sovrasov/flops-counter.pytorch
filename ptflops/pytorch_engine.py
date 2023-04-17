@@ -89,6 +89,11 @@ def print_model_with_flops(model, total_flops, total_params, flops_units='GMac',
     def flops_repr(self):
         accumulated_params_num = self.accumulate_params()
         accumulated_flops_cost = self.accumulate_flops() / model.__batch_counter__
+        if accumulated_params_num > total_params:
+            print('Warning: parameters of some of the modules were counted twice because'
+                  ' of multiple links to the same modules.'
+                  ' Extended per layer parameters num statistic could be unreliable.')
+
         return ', '.join([params_to_string(accumulated_params_num,
                                            units=param_units, precision=precision),
                           '{:.3%} Params'.format(accumulated_params_num / total_params),

@@ -45,7 +45,7 @@ def bn_flops_counter_hook(module, input, output):
     input = input[0]
 
     batch_flops = np.prod(input.shape)
-    if module.affine:
+    if hasattr(module, "affine") and module.affine:
         batch_flops *= 2
     module.__flops__ += int(batch_flops)
 
