@@ -252,6 +252,7 @@ MODULES_MAPPING = {
     nn.BatchNorm1d: bn_flops_counter_hook,
     nn.BatchNorm2d: bn_flops_counter_hook,
     nn.BatchNorm3d: bn_flops_counter_hook,
+
     nn.InstanceNorm1d: bn_flops_counter_hook,
     nn.InstanceNorm2d: bn_flops_counter_hook,
     nn.InstanceNorm3d: bn_flops_counter_hook,
