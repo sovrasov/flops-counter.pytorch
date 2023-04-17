@@ -257,6 +257,7 @@ MODULES_MAPPING = {
     nn.InstanceNorm2d: bn_flops_counter_hook,
     nn.InstanceNorm3d: bn_flops_counter_hook,
     nn.GroupNorm: bn_flops_counter_hook,
+    nn.LayerNorm: bn_flops_counter_hook,
     # FC
     nn.Linear: linear_flops_counter_hook,
     # Upscale
