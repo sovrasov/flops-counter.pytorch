@@ -9,7 +9,7 @@ print per-layer computational cost of a given network.
 Supported layers:
 - Conv1d/2d/3d (including grouping)
 - ConvTranspose1d/2d/3d (including grouping)
-- BatchNorm1d/2d/3d, GroupNorm, InstanceNorm1d/2d/3d
+- BatchNorm1d/2d/3d, GroupNorm, InstanceNorm1d/2d/3d, LayerNorm
 - Activations (ReLU, PReLU, ELU, ReLU6, LeakyReLU, GELU)
 - Linear
 - Upsample
