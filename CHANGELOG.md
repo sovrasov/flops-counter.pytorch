@@ -1,5 +1,9 @@
 # ptflops versions log
 
+## v 0.7
+- Add ConvNext to sample, fix wrong torchvision compatibility requirement.
+- Support LayerNorm.
+
 ## v 0.6.9
 - Fix unnecessary warnings.
 - Improve per layer statistics output.
