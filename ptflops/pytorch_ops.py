@@ -33,18 +33,19 @@ def linear_flops_counter_hook(module, input, output):
     # pytorch checks dimensions, so here we don't care much
     output_last_dim = output.shape[-1]
     bias_flops = output_last_dim if module.bias is not None else 0
-    module.__flops__ += int(np.prod(input.shape) * output_last_dim + bias_flops)
+    module.__flops__ += int(np.prod(input.shape, dtype=np.int64) *
+                            output_last_dim + bias_flops)
 
 
 def pool_flops_counter_hook(module, input, output):
     input = input[0]
-    module.__flops__ += int(np.prod(input.shape))
+    module.__flops__ += int(np.prod(input.shape, dtype=np.int64))
 
 
 def bn_flops_counter_hook(module, input, output):
     input = input[0]
 
-    batch_flops = np.prod(input.shape)
+    batch_flops = np.prod(input.shape, dtype=np.int64)
     if hasattr(module, "affine") and module.affine:
         batch_flops *= 2
     module.__flops__ += int(batch_flops)
@@ -63,10 +64,10 @@ def conv_flops_counter_hook(conv_module, input, output):
     groups = conv_module.groups
 
     filters_per_channel = out_channels // groups
-    conv_per_position_flops = int(np.prod(kernel_dims)) * \
+    conv_per_position_flops = int(np.prod(kernel_dims, dtype=np.int64)) * \
         in_channels * filters_per_channel
 
-    active_elements_count = batch_size * int(np.prod(output_dims))
+    active_elements_count = batch_size * int(np.prod(output_dims, dtype=np.int64))
 
     overall_conv_flops = conv_per_position_flops * active_elements_count
 
