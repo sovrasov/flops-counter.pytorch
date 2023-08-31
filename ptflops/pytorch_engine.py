@@ -41,9 +41,16 @@ def get_flops_pytorch(model, input_res,
         except StopIteration:
             batch = torch.ones(()).new_empty((1, *input_res))
 
-        _ = flops_model(batch)
 
-    flops_count, params_count = flops_model.compute_average_flops_cost()
+    try:
+        _ = flops_model(batch)
+        flops_count, params_count = flops_model.compute_average_flops_cost()
+    except Exception as e:
+        print(f"Flops estimation was not finished successfully because of the following exception:\n{type(e)} : {e}")
+        flops_model.stop_flops_count()
+        CUSTOM_MODULES_MAPPING = {}
+        return None, None
+
     if print_per_layer_stat:
         print_model_with_flops(
             flops_model,
