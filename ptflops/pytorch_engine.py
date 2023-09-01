@@ -7,12 +7,15 @@ Copyright (C) 2021 Sovrasov V. - All Rights Reserved
 '''
 
 import sys
+import copy
 from functools import partial
+import traceback
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
-from .pytorch_ops import CUSTOM_MODULES_MAPPING, MODULES_MAPPING
+from .pytorch_ops import CUSTOM_MODULES_MAPPING, MODULES_MAPPING, FUNCTIONAL_MAPPING
 from .utils import flops_to_string, params_to_string
 
 
@@ -41,14 +44,27 @@ def get_flops_pytorch(model, input_res,
         except StopIteration:
             batch = torch.ones(()).new_empty((1, *input_res))
 
+    torch_functional_flops = []
+    torch_tensor_ops_flops = []
+    patch_functional(torch_functional_flops)
+    patch_tensor_ops(torch_tensor_ops_flops)
+
+    def reset_environment():
+        flops_model.stop_flops_count()
+        unpatch_functional()
+        CUSTOM_MODULES_MAPPING = {}
 
     try:
         _ = flops_model(batch)
         flops_count, params_count = flops_model.compute_average_flops_cost()
+        flops_count += sum(torch_functional_flops)
+        flops_count += sum(torch_tensor_ops_flops)
+
     except Exception as e:
         print(f"Flops estimation was not finished successfully because of the following exception:\n{type(e)} : {e}")
-        flops_model.stop_flops_count()
-        CUSTOM_MODULES_MAPPING = {}
+        traceback.print_exc()
+        reset_environment()
+
         return None, None
 
     if print_per_layer_stat:
@@ -61,8 +77,7 @@ def get_flops_pytorch(model, input_res,
             param_units=param_units,
             precision=output_precision
         )
-    flops_model.stop_flops_count()
-    CUSTOM_MODULES_MAPPING = {}
+    reset_environment()
 
     return flops_count, params_count
 
@@ -303,3 +318,42 @@ def remove_flops_counter_variables(module):
             del module.__params__
             if hasattr(module, '__ptflops_backup_params__'):
                 module.__params__ = module.__ptflops_backup_params__
+
+
+class torch_function_wrapper:
+    def __init__(self, op, handler, collector) -> None:
+        self.collector = collector
+        self.op = op
+        self.handler = handler
+
+    def __call__(self, *args, **kwds):
+        flops = self.handler(*args, **kwds)
+        self.collector.append(flops)
+        return self.op(*args, **kwds)
+
+
+def patch_functional(collector):
+    F.linear = torch_function_wrapper(F.linear, FUNCTIONAL_MAPPING[F.linear], collector)
+    F.relu = torch_function_wrapper(F.relu, FUNCTIONAL_MAPPING[F.relu], collector)
+    F.prelu = torch_function_wrapper(F.prelu, FUNCTIONAL_MAPPING[F.prelu], collector)
+    F.elu = torch_function_wrapper(F.elu, FUNCTIONAL_MAPPING[F.elu], collector)
+    F.relu6 = torch_function_wrapper(F.relu6, FUNCTIONAL_MAPPING[F.relu6], collector)
+    F.gelu = torch_function_wrapper(F.gelu, FUNCTIONAL_MAPPING[F.gelu], collector)
+    if hasattr(F, "silu"):
+        F.silu = torch_function_wrapper(F.silu, FUNCTIONAL_MAPPING[F.silu], collector)
+
+
+def unpatch_functional():
+    F.linear = F.linear.op
+    F.relu = F.relu.op
+    F.prelu = F.prelu.op
+    F.elu = F.elu.op
+    F.relu6 = F.relu6.op
+    F.gelu = F.gelu.op
+    if hasattr(F, "silu"):
+        F.silu = F.silu.op
+
+
+def patch_tensor_ops(collector):
+    pass
+

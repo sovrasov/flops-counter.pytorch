@@ -8,6 +8,7 @@ Copyright (C) 2021 Sovrasov V. - All Rights Reserved
 
 import numpy as np
 import torch.nn as nn
+import torch.nn.functional as F
 
 
 def empty_flops_counter_hook(module, input, output):
@@ -279,3 +280,28 @@ MODULES_MAPPING = {
 
 if hasattr(nn, 'GELU'):
     MODULES_MAPPING[nn.GELU] = relu_flops_counter_hook
+
+
+def _linear_functional_flops_hook(input, weight, bias=None):
+    out_features = weight.shape[0]
+    macs = input.numel() * out_features
+    if bias is not None:
+        macs += out_features
+    return macs
+
+
+def _activation_functional_flops_hook(input, *args, **kwargs):
+    return input.numel()
+
+
+FUNCTIONAL_MAPPING = {
+    F.linear : _linear_functional_flops_hook,
+    F.relu : _activation_functional_flops_hook,
+    F.prelu : _activation_functional_flops_hook,
+    F.elu : _activation_functional_flops_hook,
+    F.relu6 : _activation_functional_flops_hook,
+    F.gelu : _activation_functional_flops_hook,
+}
+
+if hasattr(F, "silu"):
+    FUNCTIONAL_MAPPING[F.silu] = _activation_functional_flops_hook
