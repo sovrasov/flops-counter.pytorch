@@ -290,18 +290,62 @@ def _linear_functional_flops_hook(input, weight, bias=None):
     return macs
 
 
-def _activation_functional_flops_hook(input, *args, **kwargs):
+def _numel_functional_flops_hook(input, *args, **kwargs):
     return input.numel()
+
+
+def _interpolate_functional_flops_hook(*args, **kwargs):
+    input = args[0]
+    size = kwargs.get('size', None)
+    if size is None and len(args) > 1:
+        size = args[1]
+
+    if size is not None:
+        if isinstance(size, tuple) or isinstance(size, list):
+            return int(np.prod(size, dtype=np.int64))
+        else:
+            return int(size)
+
+    scale_factor = kwargs.get('scale_factor', None)
+    if scale_factor is None and len(args) > 2:
+        scale_factor = args[2]
+    assert scale_factor is not None, "either size or scale_factor should be passes to interpolate"
+
+    flops = input.numel()
+    if isinstance(scale_factor, tuple) and len(scale_factor) == len(input):
+        flops *= int(np.prod(scale_factor, dtype=np.int64))
+    else:
+        flops *= scale_factor**len(input)
+
+    return flops
 
 
 FUNCTIONAL_MAPPING = {
     F.linear : _linear_functional_flops_hook,
-    F.relu : _activation_functional_flops_hook,
-    F.prelu : _activation_functional_flops_hook,
-    F.elu : _activation_functional_flops_hook,
-    F.relu6 : _activation_functional_flops_hook,
-    F.gelu : _activation_functional_flops_hook,
+    F.relu : _numel_functional_flops_hook,
+    F.prelu : _numel_functional_flops_hook,
+    F.elu : _numel_functional_flops_hook,
+    F.relu6 : _numel_functional_flops_hook,
+    F.gelu : _numel_functional_flops_hook,
+
+    F.avg_pool1d : _numel_functional_flops_hook,
+    F.avg_pool2d : _numel_functional_flops_hook,
+    F.avg_pool3d : _numel_functional_flops_hook,
+    F.max_pool1d : _numel_functional_flops_hook,
+    F.max_pool2d : _numel_functional_flops_hook,
+    F.max_pool3d : _numel_functional_flops_hook,
+    F.adaptive_avg_pool1d : _numel_functional_flops_hook,
+    F.adaptive_avg_pool2d : _numel_functional_flops_hook,
+    F.adaptive_avg_pool3d : _numel_functional_flops_hook,
+    F.adaptive_max_pool1d : _numel_functional_flops_hook,
+    F.adaptive_max_pool2d : _numel_functional_flops_hook,
+    F.adaptive_max_pool3d : _numel_functional_flops_hook,
+
+    F.softmax : _numel_functional_flops_hook,
+
+    F.upsample : _interpolate_functional_flops_hook,
+    F.interpolate : _interpolate_functional_flops_hook,
 }
 
 if hasattr(F, "silu"):
-    FUNCTIONAL_MAPPING[F.silu] = _activation_functional_flops_hook
+    FUNCTIONAL_MAPPING[F.silu] = _numel_functional_flops_hook

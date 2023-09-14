@@ -7,7 +7,6 @@ Copyright (C) 2021 Sovrasov V. - All Rights Reserved
 '''
 
 import sys
-import copy
 from functools import partial
 import traceback
 
@@ -339,6 +338,25 @@ def patch_functional(collector):
     F.elu = torch_function_wrapper(F.elu, FUNCTIONAL_MAPPING[F.elu], collector)
     F.relu6 = torch_function_wrapper(F.relu6, FUNCTIONAL_MAPPING[F.relu6], collector)
     F.gelu = torch_function_wrapper(F.gelu, FUNCTIONAL_MAPPING[F.gelu], collector)
+
+    F.avg_pool1d = torch_function_wrapper(F.avg_pool1d, FUNCTIONAL_MAPPING[F.avg_pool1d], collector)
+    F.avg_pool2d = torch_function_wrapper(F.avg_pool2d, FUNCTIONAL_MAPPING[F.avg_pool2d], collector)
+    F.avg_pool3d = torch_function_wrapper(F.avg_pool3d, FUNCTIONAL_MAPPING[F.avg_pool3d], collector)
+    F.max_pool1d = torch_function_wrapper(F.max_pool1d, FUNCTIONAL_MAPPING[F.max_pool1d], collector)
+    F.max_pool2d = torch_function_wrapper(F.max_pool2d, FUNCTIONAL_MAPPING[F.max_pool2d], collector)
+    F.max_pool3d = torch_function_wrapper(F.max_pool3d, FUNCTIONAL_MAPPING[F.max_pool3d], collector)
+    F.adaptive_avg_pool1d = torch_function_wrapper(F.adaptive_avg_pool1d, FUNCTIONAL_MAPPING[F.adaptive_avg_pool1d], collector)
+    F.adaptive_avg_pool2d = torch_function_wrapper(F.adaptive_avg_pool2d, FUNCTIONAL_MAPPING[F.adaptive_avg_pool2d], collector)
+    F.adaptive_avg_pool3d = torch_function_wrapper(F.adaptive_avg_pool3d, FUNCTIONAL_MAPPING[F.adaptive_avg_pool3d], collector)
+    F.adaptive_max_pool1d = torch_function_wrapper(F.adaptive_max_pool1d, FUNCTIONAL_MAPPING[F.adaptive_max_pool1d], collector)
+    F.adaptive_max_pool2d = torch_function_wrapper(F.adaptive_max_pool2d, FUNCTIONAL_MAPPING[F.adaptive_max_pool2d], collector)
+    F.adaptive_max_pool3d = torch_function_wrapper(F.adaptive_max_pool3d, FUNCTIONAL_MAPPING[F.adaptive_max_pool3d], collector)
+
+    F.softmax = torch_function_wrapper(F.softmax, FUNCTIONAL_MAPPING[F.softmax], collector)
+
+    F.upsample = torch_function_wrapper(F.upsample, FUNCTIONAL_MAPPING[F.upsample], collector)
+    F.interpolate = torch_function_wrapper(F.interpolate, FUNCTIONAL_MAPPING[F.interpolate], collector)
+
     if hasattr(F, "silu"):
         F.silu = torch_function_wrapper(F.silu, FUNCTIONAL_MAPPING[F.silu], collector)
 
@@ -353,6 +371,23 @@ def unpatch_functional():
     if hasattr(F, "silu"):
         F.silu = F.silu.op
 
+    F.avg_pool1d = F.avg_pool1d.op
+    F.avg_pool2d = F.avg_pool2d.op
+    F.avg_pool3d = F.avg_pool3d.op
+    F.max_pool1d = F.max_pool1d.op
+    F.max_pool2d = F.max_pool2d.op
+    F.max_pool3d = F.max_pool3d.op
+    F.adaptive_avg_pool1d = F.adaptive_avg_pool1d.op
+    F.adaptive_avg_pool2d = F.adaptive_avg_pool2d.op
+    F.adaptive_avg_pool3d = F.adaptive_avg_pool3d.op
+    F.adaptive_max_pool1d = F.adaptive_max_pool1d.op
+    F.adaptive_max_pool2d = F.adaptive_max_pool2d.op
+    F.adaptive_max_pool3d = F.adaptive_max_pool3d.op
+
+    F.softmax = F.softmax.op
+
+    F.upsample = F.upsample.op
+    F.interpolate = F.interpolate.op
 
 def patch_tensor_ops(collector):
     pass
