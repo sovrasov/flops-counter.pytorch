@@ -14,7 +14,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from .pytorch_ops import CUSTOM_MODULES_MAPPING, MODULES_MAPPING, FUNCTIONAL_MAPPING
+from .pytorch_ops import CUSTOM_MODULES_MAPPING, MODULES_MAPPING, FUNCTIONAL_MAPPING, TENSOR_OPS_MAPPING
 from .utils import flops_to_string, params_to_string
 
 
@@ -51,6 +51,8 @@ def get_flops_pytorch(model, input_res,
     def reset_environment():
         flops_model.stop_flops_count()
         unpatch_functional()
+        unpatch_tensor_ops()
+        global CUSTOM_MODULES_MAPPING
         CUSTOM_MODULES_MAPPING = {}
 
     try:
@@ -389,6 +391,38 @@ def unpatch_functional():
     F.upsample = F.upsample.op
     F.interpolate = F.interpolate.op
 
-def patch_tensor_ops(collector):
-    pass
 
+def patch_tensor_ops(collector):
+    torch.matmul = torch_function_wrapper(torch.matmul, TENSOR_OPS_MAPPING[torch.matmul], collector)
+    torch.Tensor.matmul = torch_function_wrapper(torch.Tensor.matmul, TENSOR_OPS_MAPPING[torch.Tensor.matmul], collector)
+    torch.mm = torch_function_wrapper(torch.mm, TENSOR_OPS_MAPPING[torch.mm], collector)
+    torch.Tensor.mm = torch_function_wrapper(torch.Tensor.mm, TENSOR_OPS_MAPPING[torch.Tensor.mm], collector)
+    torch.bmm = torch_function_wrapper(torch.bmm, TENSOR_OPS_MAPPING[torch.bmm], collector)
+    torch.Tensor.bmm = torch_function_wrapper(torch.Tensor.bmm, TENSOR_OPS_MAPPING[torch.Tensor.bmm], collector)
+
+    torch.addmm = torch_function_wrapper(torch.addmm, TENSOR_OPS_MAPPING[torch.addmm], collector)
+    torch.Tensor.addmm = torch_function_wrapper(torch.Tensor.addmm, TENSOR_OPS_MAPPING[torch.Tensor.addmm], collector)
+    torch.baddbmm = torch_function_wrapper(torch.baddbmm, TENSOR_OPS_MAPPING[torch.baddbmm], collector)
+
+    torch.mul = torch_function_wrapper(torch.mul, TENSOR_OPS_MAPPING[torch.mul], collector)
+    torch.Tensor.mul = torch_function_wrapper(torch.Tensor.mul, TENSOR_OPS_MAPPING[torch.Tensor.mul], collector)
+    torch.add = torch_function_wrapper(torch.add, TENSOR_OPS_MAPPING[torch.add], collector)
+    torch.Tensor.add = torch_function_wrapper(torch.Tensor.add, TENSOR_OPS_MAPPING[torch.Tensor.add], collector)
+
+
+def unpatch_tensor_ops():
+    torch.matmul = torch.matmul.op
+    torch.Tensor.matmul = torch.Tensor.matmul.op
+    torch.mm = torch.mm.op
+    torch.Tensor.mm = torch.Tensor.mm.op
+    torch.bmm = torch.bmm.op
+    torch.Tensor.bmm = torch.Tensor.bmm.op
+
+    torch.addmm = torch.addmm.op
+    torch.Tensor.addmm = torch.Tensor.addmm.op
+    torch.baddbmm = torch.baddbmm.op
+
+    torch.mul = torch.mul.op
+    torch.Tensor.mul = torch.Tensor.mul.op
+    torch.add = torch.add.op
+    torch.Tensor.add = torch.Tensor.add.op

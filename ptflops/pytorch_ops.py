@@ -7,6 +7,7 @@ Copyright (C) 2021 Sovrasov V. - All Rights Reserved
 '''
 
 import numpy as np
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
@@ -320,6 +321,43 @@ def _interpolate_functional_flops_hook(*args, **kwargs):
     return flops
 
 
+def _matmul_tensor_flops_hook(input, other, *args, **kwargs):
+    flops = np.prod(input.shape, dtype=np.int64) * other.shape[-1]
+    return flops
+
+
+def _addmm_tensor_flops_hook(input, mat1, mat2, *, beta=1, alpha=1, out=None):
+    flops = np.prod(mat1.shape, dtype=np.int64) * mat2.shape[-1]
+    if beta != 0:
+        flops += np.prod(input.shape, dtype=np.int64)
+    return flops
+
+
+def _elementwise_tensor_flops_hook(input, other, *args, **kwargs):
+    if not torch.is_tensor(input):
+        if torch.is_tensor(other):
+            return np.prod(other.shape, dtype=np.int64)
+        else:
+            return 1
+    elif not torch.is_tensor(other):
+        return np.prod(input.shape, dtype=np.int64)
+    else:
+        dim_input = len(input.shape)
+        dim_other = len(other.shape)
+        max_dim = max(dim_input, dim_other)
+
+        final_shape = []
+        for i in range(max_dim):
+            in_i = input.shape[i] if i < dim_input else 1
+            ot_i = other.shape[i] if i < dim_other else 1
+            if in_i > ot_i:
+                final_shape.append(in_i)
+            else:
+                final_shape.append(ot_i)
+        flops = np.prod(final_shape, dtype=np.int64)
+        return flops
+
+
 FUNCTIONAL_MAPPING = {
     F.linear : _linear_functional_flops_hook,
     F.relu : _numel_functional_flops_hook,
@@ -349,3 +387,22 @@ FUNCTIONAL_MAPPING = {
 
 if hasattr(F, "silu"):
     FUNCTIONAL_MAPPING[F.silu] = _numel_functional_flops_hook
+
+
+TENSOR_OPS_MAPPING = {
+    torch.matmul : _matmul_tensor_flops_hook,
+    torch.Tensor.matmul : _matmul_tensor_flops_hook,
+    torch.mm : _matmul_tensor_flops_hook,
+    torch.Tensor.mm : _matmul_tensor_flops_hook,
+    torch.bmm : _matmul_tensor_flops_hook,
+    torch.Tensor.bmm : _matmul_tensor_flops_hook,
+
+    torch.addmm : _addmm_tensor_flops_hook,
+    torch.baddbmm : _addmm_tensor_flops_hook,
+    torch.Tensor.addmm : _addmm_tensor_flops_hook,
+
+    torch.mul : _elementwise_tensor_flops_hook,
+    torch.Tensor.mul : _elementwise_tensor_flops_hook,
+    torch.add : _elementwise_tensor_flops_hook,
+    torch.Tensor.add : _elementwise_tensor_flops_hook,
+}
