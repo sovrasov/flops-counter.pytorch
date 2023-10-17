@@ -7,14 +7,15 @@ Copyright (C) 2021 Sovrasov V. - All Rights Reserved
 '''
 
 import sys
-from functools import partial
 import traceback
+from functools import partial
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from .pytorch_ops import CUSTOM_MODULES_MAPPING, MODULES_MAPPING, FUNCTIONAL_MAPPING, TENSOR_OPS_MAPPING
+from .pytorch_ops import (CUSTOM_MODULES_MAPPING, FUNCTIONAL_MAPPING,
+                          MODULES_MAPPING, TENSOR_OPS_MAPPING)
 from .utils import flops_to_string, params_to_string
 
 
