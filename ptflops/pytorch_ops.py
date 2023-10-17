@@ -53,7 +53,7 @@ def bn_flops_counter_hook(module, input, output):
     module.__flops__ += int(batch_flops)
 
 
-def conv_flops_counter_hook(conv_module, input, output):
+def conv_flops_counter_hook(conv_module, input, output, extra_per_position_flops=0):
     # Can have multiple inputs, getting the first one
     input = input[0]
 
@@ -67,7 +67,7 @@ def conv_flops_counter_hook(conv_module, input, output):
 
     filters_per_channel = out_channels // groups
     conv_per_position_flops = int(np.prod(kernel_dims, dtype=np.int64)) * \
-        in_channels * filters_per_channel
+        (in_channels * filters_per_channel + extra_per_position_flops)
 
     active_elements_count = batch_size * int(np.prod(output_dims, dtype=np.int64))
 
@@ -82,6 +82,16 @@ def conv_flops_counter_hook(conv_module, input, output):
     overall_flops = overall_conv_flops + bias_flops
 
     conv_module.__flops__ += int(overall_flops)
+
+
+def deformable_conv_flops_counter_hook(conv_module, input, output):
+    # 20 = 4 x 5 is an approximate cost of billinear interpolation, 2x2 grid is used
+    # 4 is an approximate cost of fractional coordinates computation
+    deformable_conv_extra_complexity = 20 + 4
+    # consider also modulation multiplication
+    if len(input) == 3 and input[2] is not None:
+        deformable_conv_extra_complexity += 1
+    conv_flops_counter_hook(conv_module, input, output, deformable_conv_extra_complexity)
 
 
 def rnn_flops(flops, rnn_module, w_ih, w_hh, input_size):
@@ -281,6 +291,12 @@ MODULES_MAPPING = {
 
 if hasattr(nn, 'GELU'):
     MODULES_MAPPING[nn.GELU] = relu_flops_counter_hook
+
+try:
+    import torchvision.ops as tops
+    MODULES_MAPPING[tops.DeformConv2d] = deformable_conv_flops_counter_hook
+except ImportError:
+    pass
 
 
 def _linear_functional_flops_hook(input, weight, bias=None):
