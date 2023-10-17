@@ -7,12 +7,15 @@ Copyright (C) 2021 Sovrasov V. - All Rights Reserved
 '''
 
 import sys
+import traceback
 from functools import partial
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
-from .pytorch_ops import CUSTOM_MODULES_MAPPING, MODULES_MAPPING
+from .pytorch_ops import (CUSTOM_MODULES_MAPPING, FUNCTIONAL_MAPPING,
+                          MODULES_MAPPING, TENSOR_OPS_MAPPING)
 from .utils import flops_to_string, params_to_string
 
 
@@ -41,9 +44,32 @@ def get_flops_pytorch(model, input_res,
         except StopIteration:
             batch = torch.ones(()).new_empty((1, *input_res))
 
-        _ = flops_model(batch)
+    torch_functional_flops = []
+    torch_tensor_ops_flops = []
+    patch_functional(torch_functional_flops)
+    patch_tensor_ops(torch_tensor_ops_flops)
 
-    flops_count, params_count = flops_model.compute_average_flops_cost()
+    def reset_environment():
+        flops_model.stop_flops_count()
+        unpatch_functional()
+        unpatch_tensor_ops()
+        global CUSTOM_MODULES_MAPPING
+        CUSTOM_MODULES_MAPPING = {}
+
+    try:
+        _ = flops_model(batch)
+        flops_count, params_count = flops_model.compute_average_flops_cost()
+        flops_count += sum(torch_functional_flops)
+        flops_count += sum(torch_tensor_ops_flops)
+
+    except Exception as e:
+        print("Flops estimation was not finished successfully because of"
+              f"the following exception:\n{type(e)} : {e}")
+        traceback.print_exc()
+        reset_environment()
+
+        return None, None
+
     if print_per_layer_stat:
         print_model_with_flops(
             flops_model,
@@ -54,8 +80,7 @@ def get_flops_pytorch(model, input_res,
             param_units=param_units,
             precision=output_precision
         )
-    flops_model.stop_flops_count()
-    CUSTOM_MODULES_MAPPING = {}
+    reset_environment()
 
     return flops_count, params_count
 
@@ -296,3 +321,138 @@ def remove_flops_counter_variables(module):
             del module.__params__
             if hasattr(module, '__ptflops_backup_params__'):
                 module.__params__ = module.__ptflops_backup_params__
+
+
+class torch_function_wrapper:
+    def __init__(self, op, handler, collector) -> None:
+        self.collector = collector
+        self.op = op
+        self.handler = handler
+
+    def __call__(self, *args, **kwds):
+        flops = self.handler(*args, **kwds)
+        self.collector.append(flops)
+        return self.op(*args, **kwds)
+
+
+def patch_functional(collector):
+    # F.linear = torch_function_wrapper(F.linear, FUNCTIONAL_MAPPING[F.linear], collector)
+    F.relu = torch_function_wrapper(F.relu, FUNCTIONAL_MAPPING[F.relu], collector)
+    F.prelu = torch_function_wrapper(F.prelu, FUNCTIONAL_MAPPING[F.prelu], collector)
+    F.elu = torch_function_wrapper(F.elu, FUNCTIONAL_MAPPING[F.elu], collector)
+    F.relu6 = torch_function_wrapper(F.relu6, FUNCTIONAL_MAPPING[F.relu6], collector)
+    F.gelu = torch_function_wrapper(F.gelu, FUNCTIONAL_MAPPING[F.gelu], collector)
+
+    F.avg_pool1d = torch_function_wrapper(F.avg_pool1d,
+                                          FUNCTIONAL_MAPPING[F.avg_pool1d], collector)
+    F.avg_pool2d = torch_function_wrapper(F.avg_pool2d,
+                                          FUNCTIONAL_MAPPING[F.avg_pool2d], collector)
+    F.avg_pool3d = torch_function_wrapper(F.avg_pool3d,
+                                          FUNCTIONAL_MAPPING[F.avg_pool3d], collector)
+    F.max_pool1d = torch_function_wrapper(F.max_pool1d,
+                                          FUNCTIONAL_MAPPING[F.max_pool1d], collector)
+    F.max_pool2d = torch_function_wrapper(F.max_pool2d,
+                                          FUNCTIONAL_MAPPING[F.max_pool2d], collector)
+    F.max_pool3d = torch_function_wrapper(F.max_pool3d,
+                                          FUNCTIONAL_MAPPING[F.max_pool3d], collector)
+    F.adaptive_avg_pool1d = torch_function_wrapper(
+        F.adaptive_avg_pool1d, FUNCTIONAL_MAPPING[F.adaptive_avg_pool1d], collector)
+    F.adaptive_avg_pool2d = torch_function_wrapper(
+        F.adaptive_avg_pool2d, FUNCTIONAL_MAPPING[F.adaptive_avg_pool2d], collector)
+    F.adaptive_avg_pool3d = torch_function_wrapper(
+        F.adaptive_avg_pool3d, FUNCTIONAL_MAPPING[F.adaptive_avg_pool3d], collector)
+    F.adaptive_max_pool1d = torch_function_wrapper(
+        F.adaptive_max_pool1d, FUNCTIONAL_MAPPING[F.adaptive_max_pool1d], collector)
+    F.adaptive_max_pool2d = torch_function_wrapper(
+        F.adaptive_max_pool2d, FUNCTIONAL_MAPPING[F.adaptive_max_pool2d], collector)
+    F.adaptive_max_pool3d = torch_function_wrapper(
+        F.adaptive_max_pool3d, FUNCTIONAL_MAPPING[F.adaptive_max_pool3d], collector)
+
+    F.softmax = torch_function_wrapper(
+        F.softmax, FUNCTIONAL_MAPPING[F.softmax], collector)
+
+    F.upsample = torch_function_wrapper(
+        F.upsample, FUNCTIONAL_MAPPING[F.upsample], collector)
+    F.interpolate = torch_function_wrapper(
+        F.interpolate, FUNCTIONAL_MAPPING[F.interpolate], collector)
+
+    if hasattr(F, "silu"):
+        F.silu = torch_function_wrapper(F.silu, FUNCTIONAL_MAPPING[F.silu], collector)
+
+
+def unpatch_functional():
+    # F.linear = F.linear.op
+    F.relu = F.relu.op
+    F.prelu = F.prelu.op
+    F.elu = F.elu.op
+    F.relu6 = F.relu6.op
+    F.gelu = F.gelu.op
+    if hasattr(F, "silu"):
+        F.silu = F.silu.op
+
+    F.avg_pool1d = F.avg_pool1d.op
+    F.avg_pool2d = F.avg_pool2d.op
+    F.avg_pool3d = F.avg_pool3d.op
+    F.max_pool1d = F.max_pool1d.op
+    F.max_pool2d = F.max_pool2d.op
+    F.max_pool3d = F.max_pool3d.op
+    F.adaptive_avg_pool1d = F.adaptive_avg_pool1d.op
+    F.adaptive_avg_pool2d = F.adaptive_avg_pool2d.op
+    F.adaptive_avg_pool3d = F.adaptive_avg_pool3d.op
+    F.adaptive_max_pool1d = F.adaptive_max_pool1d.op
+    F.adaptive_max_pool2d = F.adaptive_max_pool2d.op
+    F.adaptive_max_pool3d = F.adaptive_max_pool3d.op
+
+    F.softmax = F.softmax.op
+
+    F.upsample = F.upsample.op
+    F.interpolate = F.interpolate.op
+
+
+def patch_tensor_ops(collector):
+    torch.matmul = torch_function_wrapper(
+        torch.matmul, TENSOR_OPS_MAPPING[torch.matmul], collector)
+    torch.Tensor.matmul = torch_function_wrapper(
+        torch.Tensor.matmul, TENSOR_OPS_MAPPING[torch.Tensor.matmul], collector)
+    torch.mm = torch_function_wrapper(
+        torch.mm, TENSOR_OPS_MAPPING[torch.mm], collector)
+    torch.Tensor.mm = torch_function_wrapper(
+        torch.Tensor.mm, TENSOR_OPS_MAPPING[torch.Tensor.mm], collector)
+    torch.bmm = torch_function_wrapper(
+        torch.bmm, TENSOR_OPS_MAPPING[torch.bmm], collector)
+    torch.Tensor.bmm = torch_function_wrapper(
+        torch.Tensor.bmm, TENSOR_OPS_MAPPING[torch.Tensor.bmm], collector)
+
+    torch.addmm = torch_function_wrapper(
+        torch.addmm, TENSOR_OPS_MAPPING[torch.addmm], collector)
+    torch.Tensor.addmm = torch_function_wrapper(
+        torch.Tensor.addmm, TENSOR_OPS_MAPPING[torch.Tensor.addmm], collector)
+    torch.baddbmm = torch_function_wrapper(
+        torch.baddbmm, TENSOR_OPS_MAPPING[torch.baddbmm], collector)
+
+    torch.mul = torch_function_wrapper(
+        torch.mul, TENSOR_OPS_MAPPING[torch.mul], collector)
+    torch.Tensor.mul = torch_function_wrapper(
+        torch.Tensor.mul, TENSOR_OPS_MAPPING[torch.Tensor.mul], collector)
+    torch.add = torch_function_wrapper(
+        torch.add, TENSOR_OPS_MAPPING[torch.add], collector)
+    torch.Tensor.add = torch_function_wrapper(
+        torch.Tensor.add, TENSOR_OPS_MAPPING[torch.Tensor.add], collector)
+
+
+def unpatch_tensor_ops():
+    torch.matmul = torch.matmul.op
+    torch.Tensor.matmul = torch.Tensor.matmul.op
+    torch.mm = torch.mm.op
+    torch.Tensor.mm = torch.Tensor.mm.op
+    torch.bmm = torch.bmm.op
+    torch.Tensor.bmm = torch.Tensor.bmm.op
+
+    torch.addmm = torch.addmm.op
+    torch.Tensor.addmm = torch.Tensor.addmm.op
+    torch.baddbmm = torch.baddbmm.op
+
+    torch.mul = torch.mul.op
+    torch.Tensor.mul = torch.Tensor.mul.op
+    torch.add = torch.add.op
+    torch.Tensor.add = torch.Tensor.add.op

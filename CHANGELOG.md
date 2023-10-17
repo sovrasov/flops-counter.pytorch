@@ -1,5 +1,9 @@
 # ptflops versions log
 
+## v 0.7.1
+- Experimental support of torchvision.ops.DeformConv2d
+- Experimantal support of torch.functional.* and tensor.* operators
+
 ## v 0.7
 - Add ConvNext to sample, fix wrong torchvision compatibility requirement.
 - Support LayerNorm.

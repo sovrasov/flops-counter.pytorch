@@ -7,7 +7,9 @@ Copyright (C) 2021 Sovrasov V. - All Rights Reserved
 '''
 
 import numpy as np
+import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 
 def empty_flops_counter_hook(module, input, output):
@@ -51,7 +53,7 @@ def bn_flops_counter_hook(module, input, output):
     module.__flops__ += int(batch_flops)
 
 
-def conv_flops_counter_hook(conv_module, input, output):
+def conv_flops_counter_hook(conv_module, input, output, extra_per_position_flops=0):
     # Can have multiple inputs, getting the first one
     input = input[0]
 
@@ -65,7 +67,7 @@ def conv_flops_counter_hook(conv_module, input, output):
 
     filters_per_channel = out_channels // groups
     conv_per_position_flops = int(np.prod(kernel_dims, dtype=np.int64)) * \
-        in_channels * filters_per_channel
+        (in_channels * filters_per_channel + extra_per_position_flops)
 
     active_elements_count = batch_size * int(np.prod(output_dims, dtype=np.int64))
 
@@ -80,6 +82,16 @@ def conv_flops_counter_hook(conv_module, input, output):
     overall_flops = overall_conv_flops + bias_flops
 
     conv_module.__flops__ += int(overall_flops)
+
+
+def deformable_conv_flops_counter_hook(conv_module, input, output):
+    # 20 = 4 x 5 is an approximate cost of billinear interpolation, 2x2 grid is used
+    # 4 is an approximate cost of fractional coordinates computation
+    deformable_conv_extra_complexity = 20 + 4
+    # consider also modulation multiplication
+    if len(input) == 3 and input[2] is not None:
+        deformable_conv_extra_complexity += 1
+    conv_flops_counter_hook(conv_module, input, output, deformable_conv_extra_complexity)
 
 
 def rnn_flops(flops, rnn_module, w_ih, w_hh, input_size):
@@ -279,3 +291,135 @@ MODULES_MAPPING = {
 
 if hasattr(nn, 'GELU'):
     MODULES_MAPPING[nn.GELU] = relu_flops_counter_hook
+
+try:
+    import torchvision.ops as tops
+    MODULES_MAPPING[tops.DeformConv2d] = deformable_conv_flops_counter_hook
+except ImportError:
+    pass
+
+
+def _linear_functional_flops_hook(input, weight, bias=None):
+    out_features = weight.shape[0]
+    macs = input.numel() * out_features
+    if bias is not None:
+        macs += out_features
+    return macs
+
+
+def _numel_functional_flops_hook(input, *args, **kwargs):
+    return input.numel()
+
+
+def _interpolate_functional_flops_hook(*args, **kwargs):
+    input = args[0]
+    size = kwargs.get('size', None)
+    if size is None and len(args) > 1:
+        size = args[1]
+
+    if size is not None:
+        if isinstance(size, tuple) or isinstance(size, list):
+            return int(np.prod(size, dtype=np.int64))
+        else:
+            return int(size)
+
+    scale_factor = kwargs.get('scale_factor', None)
+    if scale_factor is None and len(args) > 2:
+        scale_factor = args[2]
+    assert scale_factor is not None, "either size or scale_factor"
+    "should be passes to interpolate"
+
+    flops = input.numel()
+    if isinstance(scale_factor, tuple) and len(scale_factor) == len(input):
+        flops *= int(np.prod(scale_factor, dtype=np.int64))
+    else:
+        flops *= scale_factor**len(input)
+
+    return flops
+
+
+def _matmul_tensor_flops_hook(input, other, *args, **kwargs):
+    flops = np.prod(input.shape, dtype=np.int64) * other.shape[-1]
+    return flops
+
+
+def _addmm_tensor_flops_hook(input, mat1, mat2, *, beta=1, alpha=1, out=None):
+    flops = np.prod(mat1.shape, dtype=np.int64) * mat2.shape[-1]
+    if beta != 0:
+        flops += np.prod(input.shape, dtype=np.int64)
+    return flops
+
+
+def _elementwise_tensor_flops_hook(input, other, *args, **kwargs):
+    if not torch.is_tensor(input):
+        if torch.is_tensor(other):
+            return np.prod(other.shape, dtype=np.int64)
+        else:
+            return 1
+    elif not torch.is_tensor(other):
+        return np.prod(input.shape, dtype=np.int64)
+    else:
+        dim_input = len(input.shape)
+        dim_other = len(other.shape)
+        max_dim = max(dim_input, dim_other)
+
+        final_shape = []
+        for i in range(max_dim):
+            in_i = input.shape[i] if i < dim_input else 1
+            ot_i = other.shape[i] if i < dim_other else 1
+            if in_i > ot_i:
+                final_shape.append(in_i)
+            else:
+                final_shape.append(ot_i)
+        flops = np.prod(final_shape, dtype=np.int64)
+        return flops
+
+
+FUNCTIONAL_MAPPING = {
+    F.linear: _linear_functional_flops_hook,
+    F.relu: _numel_functional_flops_hook,
+    F.prelu: _numel_functional_flops_hook,
+    F.elu: _numel_functional_flops_hook,
+    F.relu6: _numel_functional_flops_hook,
+    F.gelu: _numel_functional_flops_hook,
+
+    F.avg_pool1d: _numel_functional_flops_hook,
+    F.avg_pool2d: _numel_functional_flops_hook,
+    F.avg_pool3d: _numel_functional_flops_hook,
+    F.max_pool1d: _numel_functional_flops_hook,
+    F.max_pool2d: _numel_functional_flops_hook,
+    F.max_pool3d: _numel_functional_flops_hook,
+    F.adaptive_avg_pool1d: _numel_functional_flops_hook,
+    F.adaptive_avg_pool2d: _numel_functional_flops_hook,
+    F.adaptive_avg_pool3d: _numel_functional_flops_hook,
+    F.adaptive_max_pool1d: _numel_functional_flops_hook,
+    F.adaptive_max_pool2d: _numel_functional_flops_hook,
+    F.adaptive_max_pool3d: _numel_functional_flops_hook,
+
+    F.softmax: _numel_functional_flops_hook,
+
+    F.upsample: _interpolate_functional_flops_hook,
+    F.interpolate: _interpolate_functional_flops_hook,
+}
+
+if hasattr(F, "silu"):
+    FUNCTIONAL_MAPPING[F.silu] = _numel_functional_flops_hook
+
+
+TENSOR_OPS_MAPPING = {
+    torch.matmul: _matmul_tensor_flops_hook,
+    torch.Tensor.matmul: _matmul_tensor_flops_hook,
+    torch.mm: _matmul_tensor_flops_hook,
+    torch.Tensor.mm: _matmul_tensor_flops_hook,
+    torch.bmm: _matmul_tensor_flops_hook,
+    torch.Tensor.bmm: _matmul_tensor_flops_hook,
+
+    torch.addmm: _addmm_tensor_flops_hook,
+    torch.baddbmm: _addmm_tensor_flops_hook,
+    torch.Tensor.addmm: _addmm_tensor_flops_hook,
+
+    torch.mul: _elementwise_tensor_flops_hook,
+    torch.Tensor.mul: _elementwise_tensor_flops_hook,
+    torch.add: _elementwise_tensor_flops_hook,
+    torch.Tensor.add: _elementwise_tensor_flops_hook,
+}
