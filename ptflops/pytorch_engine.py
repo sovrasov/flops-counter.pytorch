@@ -334,7 +334,7 @@ class torch_function_wrapper:
 
 
 def patch_functional(collector):
-    F.linear = torch_function_wrapper(F.linear, FUNCTIONAL_MAPPING[F.linear], collector)
+    # F.linear = torch_function_wrapper(F.linear, FUNCTIONAL_MAPPING[F.linear], collector)
     F.relu = torch_function_wrapper(F.relu, FUNCTIONAL_MAPPING[F.relu], collector)
     F.prelu = torch_function_wrapper(F.prelu, FUNCTIONAL_MAPPING[F.prelu], collector)
     F.elu = torch_function_wrapper(F.elu, FUNCTIONAL_MAPPING[F.elu], collector)
@@ -364,7 +364,7 @@ def patch_functional(collector):
 
 
 def unpatch_functional():
-    F.linear = F.linear.op
+    # F.linear = F.linear.op
     F.relu = F.relu.op
     F.prelu = F.prelu.op
     F.elu = F.elu.op
