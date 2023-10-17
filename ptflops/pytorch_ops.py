@@ -326,7 +326,8 @@ def _interpolate_functional_flops_hook(*args, **kwargs):
     scale_factor = kwargs.get('scale_factor', None)
     if scale_factor is None and len(args) > 2:
         scale_factor = args[2]
-    assert scale_factor is not None, "either size or scale_factor should be passes to interpolate"
+    assert scale_factor is not None, "either size or scale_factor"
+    "should be passes to interpolate"
 
     flops = input.numel()
     if isinstance(scale_factor, tuple) and len(scale_factor) == len(input):
@@ -375,30 +376,30 @@ def _elementwise_tensor_flops_hook(input, other, *args, **kwargs):
 
 
 FUNCTIONAL_MAPPING = {
-    F.linear : _linear_functional_flops_hook,
-    F.relu : _numel_functional_flops_hook,
-    F.prelu : _numel_functional_flops_hook,
-    F.elu : _numel_functional_flops_hook,
-    F.relu6 : _numel_functional_flops_hook,
-    F.gelu : _numel_functional_flops_hook,
+    F.linear: _linear_functional_flops_hook,
+    F.relu: _numel_functional_flops_hook,
+    F.prelu: _numel_functional_flops_hook,
+    F.elu: _numel_functional_flops_hook,
+    F.relu6: _numel_functional_flops_hook,
+    F.gelu: _numel_functional_flops_hook,
 
-    F.avg_pool1d : _numel_functional_flops_hook,
-    F.avg_pool2d : _numel_functional_flops_hook,
-    F.avg_pool3d : _numel_functional_flops_hook,
-    F.max_pool1d : _numel_functional_flops_hook,
-    F.max_pool2d : _numel_functional_flops_hook,
-    F.max_pool3d : _numel_functional_flops_hook,
-    F.adaptive_avg_pool1d : _numel_functional_flops_hook,
-    F.adaptive_avg_pool2d : _numel_functional_flops_hook,
-    F.adaptive_avg_pool3d : _numel_functional_flops_hook,
-    F.adaptive_max_pool1d : _numel_functional_flops_hook,
-    F.adaptive_max_pool2d : _numel_functional_flops_hook,
-    F.adaptive_max_pool3d : _numel_functional_flops_hook,
+    F.avg_pool1d: _numel_functional_flops_hook,
+    F.avg_pool2d: _numel_functional_flops_hook,
+    F.avg_pool3d: _numel_functional_flops_hook,
+    F.max_pool1d: _numel_functional_flops_hook,
+    F.max_pool2d: _numel_functional_flops_hook,
+    F.max_pool3d: _numel_functional_flops_hook,
+    F.adaptive_avg_pool1d: _numel_functional_flops_hook,
+    F.adaptive_avg_pool2d: _numel_functional_flops_hook,
+    F.adaptive_avg_pool3d: _numel_functional_flops_hook,
+    F.adaptive_max_pool1d: _numel_functional_flops_hook,
+    F.adaptive_max_pool2d: _numel_functional_flops_hook,
+    F.adaptive_max_pool3d: _numel_functional_flops_hook,
 
-    F.softmax : _numel_functional_flops_hook,
+    F.softmax: _numel_functional_flops_hook,
 
-    F.upsample : _interpolate_functional_flops_hook,
-    F.interpolate : _interpolate_functional_flops_hook,
+    F.upsample: _interpolate_functional_flops_hook,
+    F.interpolate: _interpolate_functional_flops_hook,
 }
 
 if hasattr(F, "silu"):
@@ -406,19 +407,19 @@ if hasattr(F, "silu"):
 
 
 TENSOR_OPS_MAPPING = {
-    torch.matmul : _matmul_tensor_flops_hook,
-    torch.Tensor.matmul : _matmul_tensor_flops_hook,
-    torch.mm : _matmul_tensor_flops_hook,
-    torch.Tensor.mm : _matmul_tensor_flops_hook,
-    torch.bmm : _matmul_tensor_flops_hook,
-    torch.Tensor.bmm : _matmul_tensor_flops_hook,
+    torch.matmul: _matmul_tensor_flops_hook,
+    torch.Tensor.matmul: _matmul_tensor_flops_hook,
+    torch.mm: _matmul_tensor_flops_hook,
+    torch.Tensor.mm: _matmul_tensor_flops_hook,
+    torch.bmm: _matmul_tensor_flops_hook,
+    torch.Tensor.bmm: _matmul_tensor_flops_hook,
 
-    torch.addmm : _addmm_tensor_flops_hook,
-    torch.baddbmm : _addmm_tensor_flops_hook,
-    torch.Tensor.addmm : _addmm_tensor_flops_hook,
+    torch.addmm: _addmm_tensor_flops_hook,
+    torch.baddbmm: _addmm_tensor_flops_hook,
+    torch.Tensor.addmm: _addmm_tensor_flops_hook,
 
-    torch.mul : _elementwise_tensor_flops_hook,
-    torch.Tensor.mul : _elementwise_tensor_flops_hook,
-    torch.add : _elementwise_tensor_flops_hook,
-    torch.Tensor.add : _elementwise_tensor_flops_hook,
+    torch.mul: _elementwise_tensor_flops_hook,
+    torch.Tensor.mul: _elementwise_tensor_flops_hook,
+    torch.add: _elementwise_tensor_flops_hook,
+    torch.Tensor.add: _elementwise_tensor_flops_hook,
 }
