@@ -1,5 +1,8 @@
 # ptflops versions log
 
+## v 0.7.1.1
+- Fix failure when using input constructor.
+
 ## v 0.7.1
 - Experimental support of torchvision.ops.DeformConv2d
 - Experimantal support of torch.functional.* and tensor.* operators
