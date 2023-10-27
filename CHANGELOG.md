@@ -1,6 +1,6 @@
 # ptflops versions log
 
-## v 0.7.1.1
+## v 0.7.1.2
 - Fix failure when using input constructor.
 
 ## v 0.7.1
