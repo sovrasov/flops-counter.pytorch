@@ -60,3 +60,29 @@ class TestOperations:
                                       print_per_layer_stat=False)
 
         assert (macs, params) == (8, 8)
+
+    def test_func_interpolate_args(self):
+        class CustomModel(nn.Module):
+            def __init__(self):
+                super().__init__()
+
+            def forward(self, x):
+                return nn.functional.interpolate(input=x, size=(20, 20),
+                                                 mode='bilinear', align_corners=False)
+
+        macs, params = \
+            get_model_complexity_info(CustomModel(), (3, 10, 10),
+                                      as_strings=False,
+                                      print_per_layer_stat=False)
+        assert params == 0
+        assert macs > 0
+
+        CustomModel.forward = lambda self, x: nn.functional.interpolate(x, size=(20, 20),
+                                                                        mode='bilinear')
+
+        macs, params = \
+            get_model_complexity_info(CustomModel(), (3, 10, 10),
+                                      as_strings=False,
+                                      print_per_layer_stat=False)
+        assert params == 0
+        assert macs > 0
