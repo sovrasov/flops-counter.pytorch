@@ -34,8 +34,7 @@ def get_flops_pytorch(model, input_res,
     flops_model.start_flops_count(ost=ost, verbose=verbose,
                                   ignore_list=ignore_modules)
     if input_constructor:
-        input = input_constructor(input_res)
-        _ = flops_model(**input)
+        batch = input_constructor(input_res)
     else:
         try:
             batch = torch.ones(()).new_empty((1, *input_res),
@@ -57,7 +56,10 @@ def get_flops_pytorch(model, input_res,
         CUSTOM_MODULES_MAPPING = {}
 
     try:
-        _ = flops_model(batch)
+        if isinstance(batch, dict):
+            _ = flops_model(**batch)
+        else:
+            _ = flops_model(batch)
         flops_count, params_count = flops_model.compute_average_flops_cost()
         flops_count += sum(torch_functional_flops)
         flops_count += sum(torch_tensor_ops_flops)
