@@ -312,7 +312,10 @@ def _numel_functional_flops_hook(input, *args, **kwargs):
 
 
 def _interpolate_functional_flops_hook(*args, **kwargs):
-    input = args[0]
+    input = kwargs.get('input', None)
+    if input is None and len(args) > 0:
+        input = args[0]
+
     size = kwargs.get('size', None)
     if size is None and len(args) > 1:
         size = args[1]
