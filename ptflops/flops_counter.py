@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2019-2021 Sovrasov V. - All Rights Reserved
+Copyright (C) 2019-2023 Sovrasov V. - All Rights Reserved
  * You may use, distribute and modify this code under the
  * terms of the MIT license.
  * You should have received a copy of the MIT license with

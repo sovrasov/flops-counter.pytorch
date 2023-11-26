@@ -6,9 +6,10 @@ Copyright (C) 2018-2023 Sovrasov V. - All Rights Reserved
  * this file. If not visit https://opensource.org/licenses/MIT
 '''
 
+from pathlib import Path
+
 from setuptools import find_packages, setup
 
-from pathlib import Path
 
 VERSION = '0.7.1.2'
 
