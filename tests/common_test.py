@@ -28,6 +28,15 @@ class TestOperations:
         assert params == 3 * 2 + 2
         assert int(macs) == 8
 
+    def test_fc_multidim(self):
+        net = nn.Sequential(nn.Linear(3, 2, bias=True))
+        macs, params = get_model_complexity_info(net, (4, 5, 3),
+                                                 as_strings=False,
+                                                 print_per_layer_stat=False)
+
+        assert params == (3 * 2 + 2)
+        assert int(macs) == (3 * 2 + 2) * 4 * 5
+
     def test_input_constructor_tensor(self):
         net = nn.Sequential(nn.Linear(3, 2, bias=True))
 

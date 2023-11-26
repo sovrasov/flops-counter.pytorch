@@ -34,9 +34,11 @@ def linear_flops_counter_hook(module, input, output):
     input = input[0]
     # pytorch checks dimensions, so here we don't care much
     output_last_dim = output.shape[-1]
+    input_last_dim = input.shape[-1]
+    pre_last_dims_prod = np.prod(input.shape[0:-1], dtype=np.int64)
     bias_flops = output_last_dim if module.bias is not None else 0
-    module.__flops__ += int(np.prod(input.shape, dtype=np.int64) *
-                            output_last_dim + bias_flops)
+    module.__flops__ += int((input_last_dim * output_last_dim + bias_flops)
+                            * pre_last_dims_prod)
 
 
 def pool_flops_counter_hook(module, input, output):
