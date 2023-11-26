@@ -10,7 +10,6 @@ from pathlib import Path
 
 from setuptools import find_packages, setup
 
-
 VERSION = '0.7.1.2'
 
 requirements = [
