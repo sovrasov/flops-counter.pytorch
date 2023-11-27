@@ -249,8 +249,8 @@ def timm_attention_counter_hook(attention_module, input, output):
     # head flops
     head_flops = (
         (N * N * attention_module.head_dim)  # QK^T
-        + (N * N) # softmax
-        + (N * N * attention_module.head_dim) # AV
+        + (N * N)  # softmax
+        + (N * N * attention_module.head_dim)  # AV
     )
     flops += head_flops * attention_module.num_heads
 
@@ -324,8 +324,8 @@ except ImportError:
     pass
 
 try:
-    import timm
-    MODULES_MAPPING[timm.models.vision_transformer.Attention] = timm_attention_counter_hook
+    from timm.models.vision_transformer import Attention as timm_Attention
+    MODULES_MAPPING[timm_Attention] = timm_attention_counter_hook
 except ImportError:
     pass
 
