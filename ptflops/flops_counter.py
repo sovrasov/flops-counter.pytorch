@@ -42,7 +42,7 @@ def get_model_complexity_info(model: nn.Module, input_res: Tuple[int, ...],
     else:
         raise ValueError('Wrong backend name')
 
-    if as_strings:
+    if as_strings and flops_count is not None and params_count is not None:
         flops_string = flops_to_string(
             flops_count,
             units=flops_units,

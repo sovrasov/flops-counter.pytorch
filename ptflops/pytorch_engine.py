@@ -9,6 +9,7 @@ Copyright (C) 2021-2023 Sovrasov V. - All Rights Reserved
 import sys
 import traceback
 from functools import partial
+from typing import Union
 
 import torch
 import torch.nn as nn
@@ -25,8 +26,9 @@ def get_flops_pytorch(model, input_res,
                       verbose=False, ignore_modules=[],
                       custom_modules_hooks={},
                       output_precision=3,
-                      flops_units='GMac',
-                      param_units='M'):
+                      flops_units: Union[str, None] = 'GMac',
+                      param_units: Union[str, None] = 'M') \
+                        -> Union[tuple[None, None], tuple[int, int]]:
     global CUSTOM_MODULES_MAPPING
     CUSTOM_MODULES_MAPPING = custom_modules_hooks
     flops_model = add_flops_counting_methods(model)
