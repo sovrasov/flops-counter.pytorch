@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2019-2021 Sovrasov V. - All Rights Reserved
+Copyright (C) 2019-2023 Sovrasov V. - All Rights Reserved
  * You may use, distribute and modify this code under the
  * terms of the MIT license.
  * You should have received a copy of the MIT license with
@@ -7,6 +7,7 @@ Copyright (C) 2019-2021 Sovrasov V. - All Rights Reserved
 '''
 
 import sys
+from typing import Any, Callable, Dict, TextIO, Tuple, Union
 
 import torch.nn as nn
 
@@ -14,14 +15,17 @@ from .pytorch_engine import get_flops_pytorch
 from .utils import flops_to_string, params_to_string
 
 
-def get_model_complexity_info(model, input_res,
-                              print_per_layer_stat=True,
-                              as_strings=True,
-                              input_constructor=None, ost=sys.stdout,
-                              verbose=False, ignore_modules=[],
-                              custom_modules_hooks={}, backend='pytorch',
-                              flops_units=None, param_units=None,
-                              output_precision=2):
+def get_model_complexity_info(model: nn.Module, input_res: Tuple[int, ...],
+                              print_per_layer_stat: bool = True,
+                              as_strings: bool = True,
+                              input_constructor: Union[Callable, None] = None,
+                              ost: TextIO = sys.stdout,
+                              verbose: bool = False, ignore_modules=[],
+                              custom_modules_hooks: Dict[nn.Module, Any] = {},
+                              backend: str = 'pytorch',
+                              flops_units: Union[str, None] = None,
+                              param_units: Union[str, None] = None,
+                              output_precision: int = 2):
     assert type(input_res) is tuple
     assert len(input_res) >= 1
     assert isinstance(model, nn.Module)
