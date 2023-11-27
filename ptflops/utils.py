@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2021 Sovrasov V. - All Rights Reserved
+Copyright (C) 2021-2023 Sovrasov V. - All Rights Reserved
  * You may use, distribute and modify this code under the
  * terms of the MIT license.
  * You should have received a copy of the MIT license with
@@ -7,7 +7,10 @@ Copyright (C) 2021 Sovrasov V. - All Rights Reserved
 '''
 
 
-def flops_to_string(flops, units=None, precision=2):
+from typing import Union
+
+
+def flops_to_string(flops: int, units: Union[str, None] = None, precision: int = 2):
     if units is None:
         if flops // 10**9 > 0:
             return str(round(flops / 10.**9, precision)) + ' GMac'
@@ -28,7 +31,7 @@ def flops_to_string(flops, units=None, precision=2):
             return str(flops) + ' Mac'
 
 
-def params_to_string(params_num, units=None, precision=2):
+def params_to_string(params_num: int, units: Union[str, None] = None, precision: int = 2):
     if units is None:
         if params_num // 10 ** 6 > 0:
             return str(round(params_num / 10 ** 6, precision)) + ' M'
@@ -41,5 +44,7 @@ def params_to_string(params_num, units=None, precision=2):
             return str(round(params_num / 10.**6, precision)) + ' ' + units
         elif units == 'K':
             return str(round(params_num / 10.**3, precision)) + ' ' + units
+        elif units == 'B':
+            return str(round(params_num / 10.**9, precision)) + ' ' + units
         else:
             return str(params_num)
