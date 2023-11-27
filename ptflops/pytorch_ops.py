@@ -237,6 +237,29 @@ def multihead_attention_counter_hook(multihead_attention_module, input, output):
     multihead_attention_module.__flops__ += int(flops)
 
 
+def timm_attention_counter_hook(attention_module, input, output):
+    flops = 0
+    B, N, C = input[0].shape  # [Batch_size, Seq_len, Dimension]
+
+    # QKV projection is already covered in MODULES_MAPPING
+
+    # Q scaling
+    flops += N * attention_module.head_dim * attention_module.num_heads
+
+    # head flops
+    head_flops = (
+        (N * N * attention_module.head_dim)  # QK^T
+        + (N * N)  # softmax
+        + (N * N * attention_module.head_dim)  # AV
+    )
+    flops += head_flops * attention_module.num_heads
+
+    # Final projection is already covered in MODULES_MAPPING
+
+    flops *= B
+    attention_module.__flops__ += int(flops)
+
+
 CUSTOM_MODULES_MAPPING = {}
 
 MODULES_MAPPING = {
@@ -297,6 +320,12 @@ if hasattr(nn, 'GELU'):
 try:
     import torchvision.ops as tops
     MODULES_MAPPING[tops.DeformConv2d] = deformable_conv_flops_counter_hook
+except ImportError:
+    pass
+
+try:
+    from timm.models.vision_transformer import Attention as timm_Attention
+    MODULES_MAPPING[timm_Attention] = timm_attention_counter_hook
 except ImportError:
     pass
 
