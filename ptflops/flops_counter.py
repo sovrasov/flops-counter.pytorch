@@ -27,24 +27,28 @@ def get_model_complexity_info(model: nn.Module,
                               backend: str = 'pytorch',
                               flops_units: Optional[str] = None,
                               param_units: Optional[str] = None,
-                              output_precision: int = 2) -> Tuple[Union[str, int, None], Union[str, int, None]]:
+                              output_precision: int = 2) -> Tuple[Union[str, int, None],
+                                                                  Union[str, int, None]]:
     """
     Analyzes the input model and collects the amounts of parameters and MACs
     required to make a forward pass of the model.
 
     :param model: Input model to analyze
     :type model: nn.Module
-    :param input_res: A tuple that sets the input resolution for the model. Batch dimension is added automatically:
-    (3, 224, 224) -> (1, 3, 224, 224).
+    :param input_res: A tuple that sets the input resolution for the model. Batch
+        dimension is added automatically: (3, 224, 224) -> (1, 3, 224, 224).
     :type input_res: Tuple[int, ...]
-    :param print_per_layer_stat: Flag to enable or disable printing of per-layer MACs/params statistics.
-    This feature works only for layers derived from torch.nn.Module. Other operations are ignored.
+    :param print_per_layer_stat: Flag to enable or disable printing of per-layer
+        MACs/params statistics. This feature works only for layers derived
+        from torch.nn.Module. Other operations are ignored.
     :type print_per_layer_stat: bool
-    :param as_strings: Flag that allows to get ready-to-print string representation of the final params/MACs estimations.
-    Otherwise, a tuple with raw numbers will be returned.
+    :param as_strings: Flag that allows to get ready-to-print string representation
+        of the final params/MACs estimations. Otherwise, a tuple with raw numbers
+        will be returned.
     :type as_strings: bool
-    :param input_constructor: A callable that takes the :input_res parameter and returns an output suitable for the model.
-    It can be used if model requires more than one input tensor or any other kind of irregular input.
+    :param input_constructor: A callable that takes the :input_res parameter and
+        returns an output suitable for the model. It can be used if model requires
+        more than one input tensor or any other kind of irregular input.
     :type input_constructor: Callable
     :param ost: A stream to print output.
     :type ost: TextIO
@@ -58,12 +62,14 @@ def get_model_complexity_info(model: nn.Module,
     :type flops_units: Optional[str]
     :param param_units: Units for string representation of params (M, K or B).
     :type param_units: Optional[str]
-    :param output_precision: Floating point precision for representing MACs/params in given units.
+    :param output_precision: Floating point precision for representing MACs/params in
+        given units.
     :type output_precision: int
 
     Returns:
-        Tuple[Union[str, int, None], Union[str, int, None]]: Return value is a tuple (macs, params): Nones in case of a failure during computations, or
-        strings if :as_strings is true or integers otherwise.
+        Tuple[Union[str, int, None], Union[str, int, None]]: Return value is a tuple
+            (macs, params): Nones in case of a failure during computations, or
+            strings if :as_strings is true or integers otherwise.
     """
     assert type(input_res) is tuple
     assert len(input_res) >= 1
