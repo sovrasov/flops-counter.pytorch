@@ -7,7 +7,7 @@ Copyright (C) 2019-2023 Sovrasov V. - All Rights Reserved
 '''
 
 import sys
-from typing import Any, Callable, Dict, List, Optional, TextIO, Tuple
+from typing import Any, Callable, Dict, List, Optional, TextIO, Tuple, Union
 
 import torch.nn as nn
 
@@ -27,7 +27,7 @@ def get_model_complexity_info(model: nn.Module,
                               backend: str = 'pytorch',
                               flops_units: Optional[str] = None,
                               param_units: Optional[str] = None,
-                              output_precision: int = 2) -> Tuple:
+                              output_precision: int = 2) -> Tuple[Union[str, int, None], Union[str, int, None]]:
     """
     Analyzes the input model and collects the amounts of parameters and MACs
     required to make a forward pass of the model.
@@ -62,7 +62,7 @@ def get_model_complexity_info(model: nn.Module,
     :type output_precision: int
 
     Returns:
-        Tuple: Return value is a tuple (macs, params): Nones in case of a failure during computations, or
+        Tuple[Union[str, int, None], Union[str, int, None]]: Return value is a tuple (macs, params): Nones in case of a failure during computations, or
         strings if :as_strings is true or integers otherwise.
     """
     assert type(input_res) is tuple
