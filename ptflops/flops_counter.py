@@ -19,7 +19,7 @@ def get_model_complexity_info(model: nn.Module,
                               input_res: Tuple[int, ...],
                               print_per_layer_stat: bool = True,
                               as_strings: bool = True,
-                              input_constructor: Optional[Callable] = None,
+                              input_constructor: Optional[Callable[[Tuple], Dict]] = None,
                               ost: TextIO = sys.stdout,
                               verbose: bool = False,
                               ignore_modules: List[nn.Module] = [],
@@ -49,7 +49,7 @@ def get_model_complexity_info(model: nn.Module,
     :param input_constructor: A callable that takes the :input_res parameter and
         returns an output suitable for the model. It can be used if model requires
         more than one input tensor or any other kind of irregular input.
-    :type input_constructor: Callable
+    :type input_constructor: Optional[Callable[[Tuple], Dict]]
     :param ost: A stream to print output.
     :type ost: TextIO
     :param verbose: Parameter to control printing of extra information and warnings.

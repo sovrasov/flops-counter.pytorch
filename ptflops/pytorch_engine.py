@@ -9,7 +9,7 @@ Copyright (C) 2021-2023 Sovrasov V. - All Rights Reserved
 import sys
 import traceback
 from functools import partial
-from typing import Union
+from typing import Optional, Tuple, Union
 
 import torch
 import torch.nn as nn
@@ -25,10 +25,10 @@ def get_flops_pytorch(model, input_res,
                       input_constructor=None, ost=sys.stdout,
                       verbose=False, ignore_modules=[],
                       custom_modules_hooks={},
-                      output_precision=3,
-                      flops_units: Union[str, None] = 'GMac',
-                      param_units: Union[str, None] = 'M') \
-                        -> Union[tuple[None, None], tuple[int, int]]:
+                      output_precision=2,
+                      flops_units: Optional[str] = 'GMac',
+                      param_units: Optional[str] = 'M') -> Tuple[Union[int, None],
+                                                                 Union[int, None]]:
     global CUSTOM_MODULES_MAPPING
     CUSTOM_MODULES_MAPPING = custom_modules_hooks
     flops_model = add_flops_counting_methods(model)
@@ -99,8 +99,10 @@ def accumulate_flops(self):
         return sum
 
 
-def print_model_with_flops(model, total_flops, total_params, flops_units='GMac',
-                           param_units='M', precision=3, ost=sys.stdout):
+def print_model_with_flops(model, total_flops, total_params,
+                           flops_units: Optional[str] = 'GMac',
+                           param_units: Optional[str] = 'M',
+                           precision=3, ost=sys.stdout):
     if total_flops < 1:
         total_flops = 1
     if total_params < 1:

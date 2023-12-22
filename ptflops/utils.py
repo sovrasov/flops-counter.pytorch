@@ -7,10 +7,10 @@ Copyright (C) 2021-2023 Sovrasov V. - All Rights Reserved
 '''
 
 
-from typing import Union
+from typing import Optional
 
 
-def flops_to_string(flops: int, units: Union[str, None] = None, precision: int = 2):
+def flops_to_string(flops: int, units: Optional[str] = None, precision: int = 2):
     if units is None:
         if flops // 10**9 > 0:
             return str(round(flops / 10.**9, precision)) + ' GMac'
@@ -31,7 +31,7 @@ def flops_to_string(flops: int, units: Union[str, None] = None, precision: int =
             return str(flops) + ' Mac'
 
 
-def params_to_string(params_num: int, units: Union[str, None] = None, precision: int = 2):
+def params_to_string(params_num: int, units: Optional[str] = None, precision: int = 2):
     if units is None:
         if params_num // 10 ** 6 > 0:
             return str(round(params_num / 10 ** 6, precision)) + ' M'
