@@ -86,7 +86,7 @@ def get_flops_pytorch(model, input_res,
         )
     reset_environment()
 
-    return flops_count, params_count
+    return int(flops_count), params_count
 
 
 def accumulate_flops(self):
