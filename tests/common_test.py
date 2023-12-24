@@ -95,3 +95,19 @@ class TestOperations:
                                       print_per_layer_stat=False)
         assert params == 0
         assert macs > 0
+
+    def test_ten_matmul(self):
+        class CustomModel(nn.Module):
+            def __init__(self):
+                super().__init__()
+
+            def forward(self, x):
+                return x.matmul(x.t())
+
+        macs, params = \
+            get_model_complexity_info(CustomModel(), (10, ),
+                                      as_strings=False,
+                                      print_per_layer_stat=False)
+
+        assert params == 0
+        assert macs > 0
