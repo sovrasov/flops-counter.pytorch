@@ -44,6 +44,7 @@ setup(
     python_requires='>=3.7',
 
     classifiers=[
-        'MIT Software License :: Programming Language :: Python :: 3',
+        'License :: OSI Approved :: MIT License',
+        'Programming Language :: Python :: 3.7',
     ],
 )
