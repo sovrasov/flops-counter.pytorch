@@ -3,6 +3,7 @@
 ## v 0.7.2
 - Add type annotations and doc strings to the main API.
 - Add support of HuggingFace/Timm VIT transformers.
+- Update torchvision benchmark in docs.
 
 ## v 0.7.1.2
 - Fix failure when using input constructor.
