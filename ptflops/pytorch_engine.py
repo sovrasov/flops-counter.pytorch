@@ -415,35 +415,41 @@ def unpatch_functional():
     F.interpolate = F.interpolate.op
 
 
+def wrap_tensor_op(op, collector):
+    tensor_op_handler = torch_function_wrapper(
+        op, TENSOR_OPS_MAPPING[op], collector)
+
+    def wrapper(*args, **kwargs):
+        return tensor_op_handler(*args, **kwargs)
+
+    wrapper.op = tensor_op_handler.op
+
+    return wrapper
+
+
 def patch_tensor_ops(collector):
     torch.matmul = torch_function_wrapper(
         torch.matmul, TENSOR_OPS_MAPPING[torch.matmul], collector)
-    torch.Tensor.matmul = torch_function_wrapper(
-        torch.Tensor.matmul, TENSOR_OPS_MAPPING[torch.Tensor.matmul], collector)
+    torch.Tensor.matmul = wrap_tensor_op(torch.Tensor.matmul, collector)
     torch.mm = torch_function_wrapper(
         torch.mm, TENSOR_OPS_MAPPING[torch.mm], collector)
-    torch.Tensor.mm = torch_function_wrapper(
-        torch.Tensor.mm, TENSOR_OPS_MAPPING[torch.Tensor.mm], collector)
+    torch.Tensor.mm = wrap_tensor_op(torch.Tensor.mm, collector)
     torch.bmm = torch_function_wrapper(
         torch.bmm, TENSOR_OPS_MAPPING[torch.bmm], collector)
-    torch.Tensor.bmm = torch_function_wrapper(
-        torch.Tensor.bmm, TENSOR_OPS_MAPPING[torch.Tensor.bmm], collector)
+    torch.Tensor.bmm = wrap_tensor_op(torch.Tensor.bmm, collector)
 
     torch.addmm = torch_function_wrapper(
         torch.addmm, TENSOR_OPS_MAPPING[torch.addmm], collector)
-    torch.Tensor.addmm = torch_function_wrapper(
-        torch.Tensor.addmm, TENSOR_OPS_MAPPING[torch.Tensor.addmm], collector)
+    torch.Tensor.addmm = wrap_tensor_op(torch.Tensor.addmm, collector)
     torch.baddbmm = torch_function_wrapper(
         torch.baddbmm, TENSOR_OPS_MAPPING[torch.baddbmm], collector)
 
     torch.mul = torch_function_wrapper(
         torch.mul, TENSOR_OPS_MAPPING[torch.mul], collector)
-    torch.Tensor.mul = torch_function_wrapper(
-        torch.Tensor.mul, TENSOR_OPS_MAPPING[torch.Tensor.mul], collector)
+    torch.Tensor.mul = wrap_tensor_op(torch.Tensor.mul, collector)
     torch.add = torch_function_wrapper(
         torch.add, TENSOR_OPS_MAPPING[torch.add], collector)
-    torch.Tensor.add = torch_function_wrapper(
-        torch.Tensor.add, TENSOR_OPS_MAPPING[torch.Tensor.add], collector)
+    torch.Tensor.add = wrap_tensor_op(torch.Tensor.add, collector)
 
 
 def unpatch_tensor_ops():
