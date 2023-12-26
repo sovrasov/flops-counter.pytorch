@@ -10,18 +10,22 @@ from pathlib import Path
 
 from setuptools import find_packages, setup
 
-VERSION = '0.7.2'
+VERSION = '0.7.2.1'
 
 requirements = [
     'torch',
 ]
 
 SETUP_DIR = Path(__file__).resolve().parent
+TEST_REQ = SETUP_DIR / 'test_requirements.txt'
 
-TEST_BASE_EXTRAS = (SETUP_DIR / 'test_requirements.txt').read_text()
-EXTRAS_REQUIRE = {
-    'dev': TEST_BASE_EXTRAS,
-}
+if TEST_REQ.is_file():
+    TEST_BASE_EXTRAS = TEST_REQ.read_text()
+    EXTRAS_REQUIRE = {
+        'dev': TEST_BASE_EXTRAS,
+    }
+else:
+    EXTRAS_REQUIRE = {}
 
 setup(
     name='ptflops',
