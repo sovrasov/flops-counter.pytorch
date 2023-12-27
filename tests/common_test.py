@@ -17,7 +17,7 @@ class TestOperations:
                                                  print_per_layer_stat=False)
 
         assert params == 3 * 3 * 2 * 3 + 2
-        assert int(macs) == 2759904
+        assert macs == 2759904
 
     def test_fc(self):
         net = nn.Sequential(nn.Linear(3, 2, bias=True))
@@ -26,7 +26,7 @@ class TestOperations:
                                                  print_per_layer_stat=False)
 
         assert params == 3 * 2 + 2
-        assert int(macs) == 8
+        assert macs == 8
 
     def test_fc_multidim(self):
         net = nn.Sequential(nn.Linear(3, 2, bias=True))
@@ -35,7 +35,7 @@ class TestOperations:
                                                  print_per_layer_stat=False)
 
         assert params == (3 * 2 + 2)
-        assert int(macs) == (3 * 2 + 2) * 4 * 5
+        assert macs == (3 * 2 + 2) * 4 * 5
 
     def test_input_constructor_tensor(self):
         net = nn.Sequential(nn.Linear(3, 2, bias=True))
