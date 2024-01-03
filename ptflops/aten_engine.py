@@ -7,6 +7,7 @@ Copyright (C) 2024 Sovrasov V. - All Rights Reserved
 '''
 
 
+from functools import partial
 import sys
 import traceback
 from collections import defaultdict
@@ -16,17 +17,20 @@ import torch
 from torch.utils._python_dispatch import TorchDispatchMode
 
 from ptflops.pytorch_engine import get_model_parameters_number
+from ptflops.utils import flops_to_string
 from .aten_ops import ATEN_OPS_MAPPING
 
 
-def normalize_tuple(x):
-    if not isinstance(x, tuple):
-        return (x,)
-    return x
-
-
 class FlopCounterMode(TorchDispatchMode):
-    def __init__(self, module=None):
+    def __init__(self, module=None, verbose=False, print_per_layer_stat=False,
+                 output_params=None):
+        self.verbose = verbose
+        if output_params is None:
+            output_params = defaultdict(dict)
+        self.output_params = output_params
+        self.print_fn = partial(print, **self.output_params['print_params'])
+
+        self.print_per_layer_stat = print_per_layer_stat
         self.flop_counts = defaultdict(lambda: defaultdict(int))
         self.parents = ['Global']
         self._total_complexity = None
@@ -56,9 +60,24 @@ class FlopCounterMode(TorchDispatchMode):
 
     def __exit__(self, *args):
         self._total_complexity = sum(self.flop_counts['Global'].values())
+        if self.print_per_layer_stat:
+            self.print_fn('Total:' +
+                          flops_to_string(self._total_complexity,
+                                          **self.output_params['serialize_params']))
+            for mod in self.flop_counts.keys():
+                self.print_fn("Module: ", mod)
+                for k, v in self.flop_counts[mod].items():
+                    self.print_fn(
+                        f'{k}: ' +
+                        flops_to_string(v, **self.output_params['serialize_params']))
+                self.print_fn()
         super().__exit__(*args)
 
     def __torch_dispatch__(self, func, types, args=(), kwargs=None):
+        def normalize_tuple(x):
+            if not isinstance(x, tuple):
+                return (x,)
+            return x
         kwargs = kwargs if kwargs else {}
 
         out = func(*args, **kwargs)
@@ -67,6 +86,8 @@ class FlopCounterMode(TorchDispatchMode):
             flop_count = ATEN_OPS_MAPPING[func_packet](args, normalize_tuple(out))
             for par in self.parents:
                 self.flop_counts[par][func_packet] += flop_count
+        elif self.verbose:
+            self.print_fn(f'Warning: {func_packet} operation is treated as a zero-op')
 
         return out
 
@@ -82,6 +103,9 @@ def get_flops_aten(model, input_res,
                                                               Union[int, None]]:
 
     params_sum = get_model_parameters_number(model)
+    output_params = {'serialize_params':
+                     {'units': flops_units, 'precision': output_precision},
+                     'print_params': {'file': ost}}
 
     if input_constructor:
         batch = input_constructor(input_res)
@@ -94,7 +118,7 @@ def get_flops_aten(model, input_res,
             batch = torch.ones(()).new_empty((1, *input_res))
 
     try:
-        counter = FlopCounterMode(model)
+        counter = FlopCounterMode(model, verbose, print_per_layer_stat, output_params)
         with counter:
             if isinstance(batch, dict):
                 _ = model(**batch)

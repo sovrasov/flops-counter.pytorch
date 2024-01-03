@@ -104,10 +104,6 @@ def conv_flop(inputs: List[Any], outputs: List[Any]):
     return conv_flop_count(x_shape, w_shape, out_shape, transposed=transposed)
 
 
-def transpose_shape(shape):
-    return [shape[1], shape[0]] + list(shape[2:])
-
-
 ATEN_OPS_MAPPING = {
     aten.mm: matmul_flop,
     aten.matmul: matmul_flop,
