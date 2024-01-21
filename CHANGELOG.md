@@ -1,5 +1,8 @@
 # ptflops versions log
 
+## v 0.7.2.2
+- Switch from setup.py to pyproject
+
 ## v 0.7.2
 - Add type annotations and doc strings to the main API.
 - Add support of HuggingFace/Timm VIT transformers.

@@ -1,6 +1,0 @@
-flake8==3.8.1
-flake8-import-order==0.18.1
-isort==4.3.21
-torchvision>=0.5.0
-pytest==7.1.2
-packaging
