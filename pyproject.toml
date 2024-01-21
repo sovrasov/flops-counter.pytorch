@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ptflops"
+version = "0.7.2.2"
+dependencies = [
+  "torch",
+]
+requires-python = ">=3.7"
+authors = [
+  {name = "Vladislav Sovrasov", email = "sovrasov.vlad@gmail.com"},
+]
+maintainers = [
+  {name = "Vladislav Sovrasov", email = "sovrasov.vlad@gmail.com"},
+]
+description = "Flops counter for neural networks in pytorch framework"
+readme = "README.md"
+license = {file = "LICENSE"}
+keywords = ["pytorch", "cnn", "transformer", "tomatoes", "Lobster Thermidor"]
+classifiers = [
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3.7"
+]
+
+[project.optional-dependencies]
+dev = [
+  "flake8==3.8.1",
+  "flake8-import-order==0.18.1",
+  "isort==4.3.21",
+  "torchvision>=0.5.0",
+  "pytest==7.1.2",
+  "packaging",
+]
+
+[project.urls]
+Homepage = "https://github.com/sovrasov/flops-counter.pytorch/"
+Documentation = "https://github.com/sovrasov/flops-counter.pytorch/blob/master/README.md"
+Repository = "https://github.com/sovrasov/flops-counter.pytorch.git"
+"Bug Tracker" = "https://github.com/sovrasov/flops-counter.pytorch/issues"
+Changelog = "https://github.com/sovrasov/flops-counter.pytorch/blob/master/CHANGELOG.md"
+
+[tool.setuptools.packages.find]
+include = ["ptflops"]
