@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2019-2023 Sovrasov V. - All Rights Reserved
+Copyright (C) 2019-2024 Sovrasov V. - All Rights Reserved
  * You may use, distribute and modify this code under the
  * terms of the MIT license.
  * You should have received a copy of the MIT license with
@@ -7,12 +7,19 @@ Copyright (C) 2019-2023 Sovrasov V. - All Rights Reserved
 '''
 
 import sys
+from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, TextIO, Tuple, Union
 
 import torch.nn as nn
 
+from .aten_engine import get_flops_aten
 from .pytorch_engine import get_flops_pytorch
 from .utils import flops_to_string, params_to_string
+
+
+class FLOPS_BACKEND(Enum):
+    PYTORCH = 'pytorch'
+    ATEN = 'aten'
 
 
 def get_model_complexity_info(model: nn.Module,
@@ -24,7 +31,7 @@ def get_model_complexity_info(model: nn.Module,
                               verbose: bool = False,
                               ignore_modules: List[nn.Module] = [],
                               custom_modules_hooks: Dict[nn.Module, Any] = {},
-                              backend: str = 'pytorch',
+                              backend: Union[str, FLOPS_BACKEND] = FLOPS_BACKEND.PYTORCH,
                               flops_units: Optional[str] = None,
                               param_units: Optional[str] = None,
                               output_precision: int = 2) -> Tuple[Union[str, int, None],
@@ -58,6 +65,8 @@ def get_model_complexity_info(model: nn.Module,
     :type ignore_modules: nn.Module
     :param custom_modules_hooks: A dict that contains custom hooks on torch modules.
     :type custom_modules_hooks: Dict[nn.Module, Any]
+    :param backend: Backend that used for evaluating model complexity.
+    :type backend: FLOPS_BACKEND
     :param flops_units: Units for string representation of MACs (GMac, MMac or KMac).
     :type flops_units: Optional[str]
     :param param_units: Units for string representation of params (M, K or B).
@@ -75,7 +84,7 @@ def get_model_complexity_info(model: nn.Module,
     assert len(input_res) >= 1
     assert isinstance(model, nn.Module)
 
-    if backend == 'pytorch':
+    if FLOPS_BACKEND(backend) == FLOPS_BACKEND.PYTORCH:
         flops_count, params_count = get_flops_pytorch(model, input_res,
                                                       print_per_layer_stat,
                                                       input_constructor, ost,
@@ -84,6 +93,15 @@ def get_model_complexity_info(model: nn.Module,
                                                       output_precision=output_precision,
                                                       flops_units=flops_units,
                                                       param_units=param_units)
+    elif FLOPS_BACKEND(backend) == FLOPS_BACKEND.ATEN:
+        flops_count, params_count = get_flops_aten(model, input_res,
+                                                   print_per_layer_stat,
+                                                   input_constructor, ost,
+                                                   verbose, ignore_modules,
+                                                   custom_modules_hooks,
+                                                   output_precision=output_precision,
+                                                   flops_units=flops_units,
+                                                   param_units=param_units)
     else:
         raise ValueError('Wrong backend name')
 

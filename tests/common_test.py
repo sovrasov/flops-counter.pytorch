@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 
 from ptflops import get_model_complexity_info
+from ptflops.flops_counter import FLOPS_BACKEND
 
 
 class TestOperations:
@@ -10,32 +11,38 @@ class TestOperations:
     def default_input_image_size(self):
         return (3, 224, 224)
 
-    def test_conv(self, default_input_image_size):
+    @pytest.mark.parametrize("backend", [FLOPS_BACKEND.PYTORCH, FLOPS_BACKEND.ATEN])
+    def test_conv(self, default_input_image_size, backend: FLOPS_BACKEND):
         net = nn.Sequential(nn.Conv2d(3, 2, 3, bias=True))
         macs, params = get_model_complexity_info(net, default_input_image_size,
                                                  as_strings=False,
-                                                 print_per_layer_stat=False)
+                                                 print_per_layer_stat=False,
+                                                 backend=backend)
 
         assert params == 3 * 3 * 2 * 3 + 2
-        assert int(macs) == 2759904
+        assert macs == 2759904
 
-    def test_fc(self):
+    @pytest.mark.parametrize("backend", [FLOPS_BACKEND.PYTORCH, FLOPS_BACKEND.ATEN])
+    def test_fc(self, backend: FLOPS_BACKEND):
         net = nn.Sequential(nn.Linear(3, 2, bias=True))
         macs, params = get_model_complexity_info(net, (3,),
                                                  as_strings=False,
-                                                 print_per_layer_stat=False)
+                                                 print_per_layer_stat=False,
+                                                 backend=backend)
 
         assert params == 3 * 2 + 2
-        assert int(macs) == 8
+        assert macs == 8
 
-    def test_fc_multidim(self):
-        net = nn.Sequential(nn.Linear(3, 2, bias=True))
+    @pytest.mark.parametrize("backend", [FLOPS_BACKEND.PYTORCH, FLOPS_BACKEND.ATEN])
+    def test_fc_multidim(self, backend: FLOPS_BACKEND):
+        net = nn.Sequential(nn.Linear(3, 2, bias=False))
         macs, params = get_model_complexity_info(net, (4, 5, 3),
                                                  as_strings=False,
-                                                 print_per_layer_stat=False)
+                                                 print_per_layer_stat=False,
+                                                 backend=backend)
 
-        assert params == (3 * 2 + 2)
-        assert int(macs) == (3 * 2 + 2) * 4 * 5
+        assert params == 3 * 2
+        assert macs == (3 * 2) * 4 * 5
 
     def test_input_constructor_tensor(self):
         net = nn.Sequential(nn.Linear(3, 2, bias=True))

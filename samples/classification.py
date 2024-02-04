@@ -27,6 +27,8 @@ if __name__ == '__main__':
                         help='Device to store the model.')
     parser.add_argument('--model', choices=list(pt_models.keys()),
                         type=str, default='resnet18')
+    parser.add_argument('--backend', choices=list(['pytorch', 'aten']),
+                        type=str, default='pytorch')
     parser.add_argument('--result', type=str, default=None)
     args = parser.parse_args()
 
@@ -42,6 +44,7 @@ if __name__ == '__main__':
 
     macs, params = get_model_complexity_info(net, (3, 224, 224),
                                              as_strings=True,
+                                             backend=args.backend,
                                              print_per_layer_stat=True,
                                              ost=ost)
     print('{:<30}  {:<8}'.format('Computational complexity: ', macs))
