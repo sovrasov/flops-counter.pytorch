@@ -7,10 +7,10 @@ Copyright (C) 2024 Sovrasov V. - All Rights Reserved
 '''
 
 
-from functools import partial
 import sys
 import traceback
 from collections import defaultdict
+from functools import partial
 from typing import Optional, Tuple, Union
 
 import torch
