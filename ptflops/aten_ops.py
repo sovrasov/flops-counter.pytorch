@@ -13,11 +13,7 @@ import torch
 aten = torch.ops.aten
 
 
-def get_shape(i):
-    return i.shape
-
-
-def prod(x) -> int:
+def prod(x: torch.Size) -> int:
     res = 1
     for i in x:
         res *= i
@@ -30,7 +26,7 @@ def matmul_flop(inputs: List[Any], outputs: List[Any]) -> int:
     """
     # Inputs should be a list of length 2.
     # Inputs contains the shapes of two matrices.
-    input_shapes = [get_shape(v) for v in inputs]
+    input_shapes = [v.shape for v in inputs]
     assert len(input_shapes) == 2, input_shapes
     assert input_shapes[0][-1] == input_shapes[1][-2], input_shapes
     flop = prod(input_shapes[0]) * input_shapes[-1][-1]
@@ -39,11 +35,11 @@ def matmul_flop(inputs: List[Any], outputs: List[Any]) -> int:
 
 def addmm_flop(inputs: List[Any], outputs: List[Any]) -> int:
     """
-    Count flops for fully connected layers.
+    Count flops for fully connected layers (nn.Linear).
+    Bias is considered if exists.
     """
-    # Count flop for nn.Linear
-    # inputs is a list of length 3.
-    input_shapes = [get_shape(v) for v in inputs[1:3]]
+    # inputs: bias, input, weight
+    input_shapes = [v.shape for v in inputs[1:3]]
     # input_shapes[0]: [batch size, input feature dimension]
     # input_shapes[1]: [batch size, output feature dimension]
     assert len(input_shapes[0]) == 2, input_shapes[0]
@@ -51,6 +47,10 @@ def addmm_flop(inputs: List[Any], outputs: List[Any]) -> int:
     batch_size, input_dim = input_shapes[0]
     output_dim = input_shapes[1][1]
     flops = batch_size * input_dim * output_dim
+
+    if inputs[0] is not None:
+        flops += batch_size * output_dim
+
     return flops
 
 
@@ -61,7 +61,7 @@ def bmm_flop(inputs: List[Any], outputs: List[Any]) -> int:
     # Inputs should be a list of length 2.
     # Inputs contains the shapes of two tensors.
     assert len(inputs) == 2, len(inputs)
-    input_shapes = [get_shape(v) for v in inputs]
+    input_shapes = [v.shape for v in inputs]
     n, c, t = input_shapes[0]
     d = input_shapes[-1][-1]
     flop = n * c * t * d
@@ -69,9 +69,9 @@ def bmm_flop(inputs: List[Any], outputs: List[Any]) -> int:
 
 
 def conv_flop_count(
-    x_shape: List[int],
-    w_shape: List[int],
-    out_shape: List[int],
+    x_shape: torch.Size,
+    w_shape: torch.Size,
+    out_shape: torch.Size,
     transposed: bool = False,
     bias: bool = False,
 ) -> int:
@@ -95,7 +95,7 @@ def conv_flop_count(
     return flop
 
 
-def conv_flop(inputs: List[Any], outputs: List[Any]):
+def conv_flop(inputs: List[Any], outputs: List[Any]) -> int:
     """
     Count flops for convolution.
     """
