@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 
 from ptflops import get_model_complexity_info
+from ptflops.flops_counter import FLOPS_BACKEND
 
 
 class TestOperations:
@@ -10,7 +11,8 @@ class TestOperations:
     def default_input_image_size(self):
         return (3, 224, 224)
 
-    def test_conv(self, default_input_image_size):
+    @pytest.mark.parametrize("backend", [FLOPS_BACKEND.PYTORCH, FLOPS_BACKEND.ATEN])
+    def test_conv(self, default_input_image_size, backend: FLOPS_BACKEND):
         net = nn.Sequential(nn.Conv2d(3, 2, 3, bias=True))
         macs, params = get_model_complexity_info(net, default_input_image_size,
                                                  as_strings=False,

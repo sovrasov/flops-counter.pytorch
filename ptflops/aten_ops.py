@@ -17,7 +17,7 @@ def get_shape(i):
     return i.shape
 
 
-def prod(x):
+def prod(x) -> int:
     res = 1
     for i in x:
         res *= i
@@ -59,7 +59,7 @@ def bmm_flop(inputs: List[Any], outputs: List[Any]) -> int:
     Count flops for the bmm operation.
     """
     # Inputs should be a list of length 2.
-    # Inputs contains the shapes of two tensor.
+    # Inputs contains the shapes of two tensors.
     assert len(inputs) == 2, len(inputs)
     input_shapes = [get_shape(v) for v in inputs]
     n, c, t = input_shapes[0]
@@ -73,23 +73,25 @@ def conv_flop_count(
     w_shape: List[int],
     out_shape: List[int],
     transposed: bool = False,
+    bias: bool = False,
 ) -> int:
     """
-    Count flops for convolution. Note only multiplication is
-    counted. Computation for addition and bias is ignored.
-    Flops for a transposed convolution are calculated as
-    flops = (x_shape[2:] * prod(w_shape) * batch_size).
+    Count MACs for convolution.
+    Summation is ignored when applying conv kernel, but counted for bias.
     Args:
         x_shape (list(int)): The input shape before convolution.
         w_shape (list(int)): The filter shape.
         out_shape (list(int)): The output shape after convolution.
         transposed (bool): is the convolution transposed
+        bias (bool): is the bias counted
     Returns:
-        int: the number of flops
+        int: the number of MACs
     """
     batch_size = x_shape[0]
     conv_shape = (x_shape if transposed else out_shape)[2:]
     flop = batch_size * prod(w_shape) * prod(conv_shape)
+    if bias:
+        flop += batch_size * out_shape[1] * prod(out_shape[2:])
     return flop
 
 
@@ -97,11 +99,11 @@ def conv_flop(inputs: List[Any], outputs: List[Any]):
     """
     Count flops for convolution.
     """
-    x, w = inputs[:2]
-    x_shape, w_shape, out_shape = (get_shape(x), get_shape(w), get_shape(outputs[0]))
-    transposed = inputs[6]
-
-    return conv_flop_count(x_shape, w_shape, out_shape, transposed=transposed)
+    (input, w, b, stride, pad, dilation,
+     transposed, _, groups) = inputs
+    output = outputs[0]
+    return conv_flop_count(input.shape, w.shape, output.shape,
+                           transposed=transposed, bias=b is not None)
 
 
 ATEN_OPS_MAPPING = {
