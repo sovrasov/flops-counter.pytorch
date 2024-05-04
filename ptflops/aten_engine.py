@@ -103,6 +103,7 @@ def get_flops_aten(model, input_res,
                                                               Union[int, None]]:
 
     params_sum = get_model_parameters_number(model)
+    model.eval()
     output_params = {'serialize_params':
                      {'units': flops_units, 'precision': output_precision},
                      'print_params': {'file': ost}}
@@ -128,7 +129,7 @@ def get_flops_aten(model, input_res,
 
     except Exception as e:
         print("Flops estimation was not finished successfully because of"
-              f"the following exception:\n{type(e)} : {e}")
+              f" the following exception:\n{type(e)} : {e}")
         traceback.print_exc()
 
         return None, None

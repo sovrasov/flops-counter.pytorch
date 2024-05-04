@@ -68,7 +68,7 @@ def get_flops_pytorch(model, input_res,
 
     except Exception as e:
         print("Flops estimation was not finished successfully because of"
-              f"the following exception:\n{type(e)} : {e}")
+              f" the following exception:\n{type(e)} : {e}")
         traceback.print_exc()
         reset_environment()
 
