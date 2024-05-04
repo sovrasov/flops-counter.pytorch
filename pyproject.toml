@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ptflops"
-version = "0.7.2.2"
+version = "0.7.3"
 dependencies = [
   "torch",
 ]
