@@ -118,3 +118,8 @@ squeezenet1_0          | 224x224          | 1.25      | 0.84
 vgg16                  | 224x224          | 138.36    | 15.52
 vit_b_16               | 224x224          | 86.57     | 17.60
 wide_resnet50_2        | 224x224          | 68.88     | 11.45
+
+
+### [timm](https://github.com/huggingface/pytorch-image-models)
+
+Model                  | Input Resolution | Params(M) | MACs(G)

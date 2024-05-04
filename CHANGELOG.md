@@ -1,5 +1,8 @@
 # ptflops versions log
 
+## v 0.7.3
+- Add aten backend to collect the amount of flops on aten level.
+
 ## v 0.7.2.2
 - Switch from setup.py to pyproject
 
