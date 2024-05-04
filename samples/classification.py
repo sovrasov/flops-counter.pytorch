@@ -15,7 +15,8 @@ pt_models = {'resnet18': models.resnet18,
              'squeezenet': models.squeezenet1_0,
              'densenet': models.densenet161,
              'inception': models.inception_v3,
-             'convnext_base': models.convnext_base}
+             'convnext_base': models.convnext_base,
+             'vit_b_16': models.vit_b_16}
 
 if version.parse(torchvision.__version__) > version.parse('0.15'):
     pt_models['vit_b_16'] = models.vit_b_16
@@ -42,7 +43,12 @@ if __name__ == '__main__':
     if torch.cuda.is_available():
         net.cuda(device=args.device)
 
-    macs, params = get_model_complexity_info(net, (3, 224, 224),
+    if args.model == 'inception':
+        input_res = (3, 299, 299)
+    else:
+        input_res = (3, 224, 224)
+
+    macs, params = get_model_complexity_info(net, input_res,
                                              as_strings=True,
                                              backend=args.backend,
                                              print_per_layer_stat=True,
