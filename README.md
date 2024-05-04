@@ -96,28 +96,28 @@ If ptflops was useful for your paper or tech report, please cite me:
 
 ### [torchvision](https://pytorch.org/vision/0.16/models.html)
 
-Model                  | Input Resolution | Params(M) | MACs(G)
----                    |---               |---        |---
-alexnet                | 224x224          | 61.10     | 0.72
-convnext_base          | 224x224          | 88.59     | 15.43
-densenet121            | 224x224          | 7.98      | 2.90
-efficientnet_b0        | 224x224          | 5.29      | 0.41
-efficientnet_v2_m      | 224x224          | 54.14     | 5.43
-googlenet              | 224x224          | 13.00     | 1.51
-inception_v3           | 224x224          | 27.16     | 2.86
-maxvit_t               | 224x224          | 30.92     | 5.48
-mnasnet1_0             | 224x224          | 4.38      | 0.33
-mobilenet_v2           | 224x224          | 3.50      | 0.32
-mobilenet_v3_large     | 224x224          | 5.48      | 0.23
-regnet_y_1_6gf         | 224x224          | 11.20     | 1.65
-resnet18               | 224x224          | 11.69     | 1.83
-resnet50               | 224x224          | 25.56     | 4.13
-resnext50_32x4d        | 224x224          | 25.03     | 4.29
-shufflenet_v2_x1_0     | 224x224          | 2.28      | 0.15
-squeezenet1_0          | 224x224          | 1.25      | 0.84
-vgg16                  | 224x224          | 138.36    | 15.52
-vit_b_16               | 224x224          | 86.57     | 17.60
-wide_resnet50_2        | 224x224          | 68.88     | 11.45
+Model                  | Input Resolution | Params(M) | MACs(G) (`pytorch`) | MACs(G) (`aten`)
+---                    |---               |---        |---                  |---
+alexnet                | 224x224          | 61.10     | 0.72                | 0.71
+convnext_base          | 224x224          | 88.59     | 15.43               | 15.38
+densenet121            | 224x224          | 7.98      | 2.90                |
+efficientnet_b0        | 224x224          | 5.29      | 0.41                |
+efficientnet_v2_m      | 224x224          | 54.14     | 5.43                |
+googlenet              | 224x224          | 13.00     | 1.51                |
+inception_v3           | 224x224          | 27.16     | 5.75                | 5.71
+maxvit_t               | 224x224          | 30.92     | 5.48                |
+mnasnet1_0             | 224x224          | 4.38      | 0.33                |
+mobilenet_v2           | 224x224          | 3.50      | 0.32                |
+mobilenet_v3_large     | 224x224          | 5.48      | 0.23                |
+regnet_y_1_6gf         | 224x224          | 11.20     | 1.65                |
+resnet18               | 224x224          | 11.69     | 1.83                | 1.81
+resnet50               | 224x224          | 25.56     | 4.13                | 4.09
+resnext50_32x4d        | 224x224          | 25.03     | 4.29                |
+shufflenet_v2_x1_0     | 224x224          | 2.28      | 0.15                |
+squeezenet1_0          | 224x224          | 1.25      | 0.84                | 0.82
+vgg16                  | 224x224          | 138.36    | 15.52               | 15.48
+vit_b_16               | 224x224          | 86.57     | 17.61 (wrong)       | 16.86
+wide_resnet50_2        | 224x224          | 68.88     | 11.45               |
 
 
 ### [timm](https://github.com/huggingface/pytorch-image-models)
