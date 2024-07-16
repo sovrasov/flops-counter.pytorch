@@ -9,6 +9,7 @@ print per-layer computational cost of a given network.
 `ptflops` has two backends, `pytorch` and `aten`. `pytorch` backend is a legacy one, it considers `nn.Modules` only. However,
 it's still useful, since it provides a better par-layer analytics for CNNs. In all other cases it's recommended to use
 `aten` backend, which considers aten operations, and therefore it covers more model architectures (including transformers).
+The default backend is `aten`. Please, don't use `pytorch` backend for transformer architectures.
 
 ## `aten` backend
 ### Operations considered:
@@ -19,6 +20,9 @@ it's still useful, since it provides a better par-layer analytics for CNNs. In a
 - Use `verbose=True` to see the operations which were not considered during complexity computation.
 - This backend prints per-module statistics only for modules directly nested into the root `nn.Module`.
 Deeper modules at the second level of nesting are not shown in the per-layer statistics.
+- `ignore_modules` option forces `ptflops` to ignore the listed modules. This can be useful
+for research purposes. For instance, one can drop all convolutions from the counting process
+specifying `ignore_modules=[torch.ops.aten.convolution, torch.ops.aten._convolution]`.
 
 ## `pytorch` backend
 ### Supported layers:
@@ -41,7 +45,9 @@ Experimental support:
 
 - This backend doesn't take into account some of the `torch.nn.functional.*` and `tensor.*` operations. Therefore unsupported operations are
 not contributing to the final complexity estimation. See `ptflops/pytorch_ops.py:FUNCTIONAL_MAPPING,TENSOR_OPS_MAPPING` to check supported ops.
-- `ptflops` launches a given model on a random tensor and estimates amount of computations during inference. Complicated models can have several inputs, some of them could be optional. To construct non-trivial input one can use the `input_constructor` argument of the `get_model_complexity_info`. `input_constructor` is a function that takes the input spatial resolution as a tuple and returns a dict with named input arguments of the model. Next this dict would be passed to the model as a keyword arguments.
+Sometimes considering functional style conflicts with hooks for `nn.Module` (for instance, custom ones). In that case, counting with these ops can be disabled by
+passing `backend_specific_config={"count_functional" : False}`.
+- `ptflops` launches a given model on a random tensor and estimates amount of computations during inference. Complicated models can have several inputs, some of them could be optional. To construct non-trivial input one can use the `input_constructor` argument of the `get_model_complexity_info`. `input_constructor` is a function that takes the input spatial resolution as a tuple and returns a dict with named input arguments of the model. Next, this dict would be passed to the model as a keyword arguments.
 - `verbose` parameter allows to get information about modules that don't contribute to the final numbers.
 - `ignore_modules` option forces `ptflops` to ignore the listed modules. This can be useful
 for research purposes. For instance, one can drop all convolutions from the counting process

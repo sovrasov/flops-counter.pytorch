@@ -29,13 +29,15 @@ def get_model_complexity_info(model: nn.Module,
                               input_constructor: Optional[Callable[[Tuple], Dict]] = None,
                               ost: TextIO = sys.stdout,
                               verbose: bool = False,
-                              ignore_modules: List[nn.Module] = [],
-                              custom_modules_hooks: Dict[nn.Module, Any] = {},
-                              backend: Union[str, FLOPS_BACKEND] = FLOPS_BACKEND.PYTORCH,
+                              ignore_modules: List[Union[nn.Module, Any]] = [],
+                              custom_modules_hooks: Dict[Union[nn.Module, Any], Any] = {},
+                              backend: Union[str, FLOPS_BACKEND] = FLOPS_BACKEND.ATEN,
                               flops_units: Optional[str] = None,
                               param_units: Optional[str] = None,
-                              output_precision: int = 2) -> Tuple[Union[str, int, None],
-                                                                  Union[str, int, None]]:
+                              output_precision: int = 2,
+                              backend_specific_config: Dict = {}) -> Tuple[
+                                  Union[str, int, None],
+                                  Union[str, int, None]]:
     """
     Analyzes the input model and collects the amounts of parameters and MACs
     required to make a forward pass of the model.
@@ -61,10 +63,11 @@ def get_model_complexity_info(model: nn.Module,
     :type ost: TextIO
     :param verbose: Parameter to control printing of extra information and warnings.
     :type verbose: bool
-    :param ignore_modules: A list of torch.nn.Module modules to ignore.
-    :type ignore_modules: nn.Module
-    :param custom_modules_hooks: A dict that contains custom hooks on torch modules.
-    :type custom_modules_hooks: Dict[nn.Module, Any]
+    :param ignore_modules: A list of torch.nn.Module or torch.ops.aten modules to ignore.
+    :type ignore_modules: List[Union[nn.Module, Any]]
+    :param custom_modules_hooks: A dict that contains custom hooks for torch.nn.Module or
+     torch.ops.aten modules.
+    :type custom_modules_hooks: Dict[Union[nn.Module, Any], Any]
     :param backend: Backend that used for evaluating model complexity.
     :type backend: FLOPS_BACKEND
     :param flops_units: Units for string representation of MACs (GMac, MMac or KMac).
@@ -74,6 +77,8 @@ def get_model_complexity_info(model: nn.Module,
     :param output_precision: Floating point precision for representing MACs/params in
         given units.
     :type output_precision: int
+    :param backend_specific_config: Extra configuration for a specific backend.
+    :type backend_specific_config: dict
 
     Returns:
         Tuple[Union[str, int, None], Union[str, int, None]]: Return value is a tuple
@@ -85,14 +90,16 @@ def get_model_complexity_info(model: nn.Module,
     assert isinstance(model, nn.Module)
 
     if FLOPS_BACKEND(backend) == FLOPS_BACKEND.PYTORCH:
-        flops_count, params_count = get_flops_pytorch(model, input_res,
-                                                      print_per_layer_stat,
-                                                      input_constructor, ost,
-                                                      verbose, ignore_modules,
-                                                      custom_modules_hooks,
-                                                      output_precision=output_precision,
-                                                      flops_units=flops_units,
-                                                      param_units=param_units)
+        flops_count, params_count = \
+            get_flops_pytorch(model, input_res,
+                              print_per_layer_stat,
+                              input_constructor, ost,
+                              verbose, ignore_modules,
+                              custom_modules_hooks,
+                              output_precision=output_precision,
+                              flops_units=flops_units,
+                              param_units=param_units,
+                              extra_config=backend_specific_config)
     elif FLOPS_BACKEND(backend) == FLOPS_BACKEND.ATEN:
         flops_count, params_count = get_flops_aten(model, input_res,
                                                    print_per_layer_stat,
@@ -101,7 +108,8 @@ def get_model_complexity_info(model: nn.Module,
                                                    custom_modules_hooks,
                                                    output_precision=output_precision,
                                                    flops_units=flops_units,
-                                                   param_units=param_units)
+                                                   param_units=param_units,
+                                                   extra_config=backend_specific_config)
     else:
         raise ValueError('Wrong backend name')
 
