@@ -4,11 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ptflops"
-version = "0.7.3"
+version = "0.7.4"
 dependencies = [
-  "torch",
+  "torch>=2.0",
 ]
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 authors = [
   {name = "Vladislav Sovrasov", email = "sovrasov.vlad@gmail.com"},
 ]
@@ -18,10 +18,10 @@ maintainers = [
 description = "Flops counter for neural networks in pytorch framework"
 readme = "README.md"
 license = {file = "LICENSE"}
-keywords = ["pytorch", "cnn", "transformer", "tomatoes", "Lobster Thermidor"]
+keywords = ["pytorch", "cnn", "transformer"]
 classifiers = [
   "License :: OSI Approved :: MIT License",
-  "Programming Language :: Python :: 3.7"
+  "Programming Language :: Python :: 3.8"
 ]
 
 [project.optional-dependencies]

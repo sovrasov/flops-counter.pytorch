@@ -53,9 +53,8 @@ passing `backend_specific_config={"count_functional" : False}`.
 for research purposes. For instance, one can drop all convolutions from the counting process
 specifying `ignore_modules=[torch.nn.Conv2d]`.
 
-Requirements: Pytorch >= 1.1, torchvision >= 0.3
-
-Thanks to @warmspringwinds and Horace He for the initial version of the script.
+## Requirements
+Pytorch >= 2.0. Use `pip install ptflops==0.7.2.2` to work with torch 1.x.
 
 ## Install the latest version
 From PyPI:
@@ -97,6 +96,10 @@ If ptflops was useful for your paper or tech report, please cite me:
   url = {https://github.com/sovrasov/flops-counter.pytorch},
 }
 ```
+
+## Credits
+
+Thanks to @warmspringwinds and Horace He for the initial version of the script.
 
 ## Benchmark
 
