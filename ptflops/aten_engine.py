@@ -10,6 +10,7 @@ Copyright (C) 2024 Sovrasov V. - All Rights Reserved
 import sys
 import traceback
 from collections import defaultdict
+from copy import deepcopy
 from functools import partial
 from typing import Optional, Tuple, Union
 
@@ -23,12 +24,15 @@ from .aten_ops import ATEN_OPS_MAPPING
 
 class FlopCounterMode(TorchDispatchMode):
     def __init__(self, module=None, verbose=False, print_per_layer_stat=False,
-                 output_params=None):
+                 output_params=None, custom_hooks={}, ignored_ops=[]):
         self.verbose = verbose
         if output_params is None:
             output_params = defaultdict(dict)
         self.output_params = output_params
         self.print_fn = partial(print, **self.output_params['print_params'])
+        self.all_ops = deepcopy(ATEN_OPS_MAPPING)
+        self.all_ops.update(custom_hooks)
+        self.ignored_ops = ignored_ops
 
         self.print_per_layer_stat = print_per_layer_stat
         self.flop_counts = defaultdict(lambda: defaultdict(int))
@@ -82,8 +86,11 @@ class FlopCounterMode(TorchDispatchMode):
 
         out = func(*args, **kwargs)
         func_packet = func._overloadpacket
-        if func_packet in ATEN_OPS_MAPPING:
-            flop_count = ATEN_OPS_MAPPING[func_packet](args, normalize_tuple(out))
+
+        if func_packet in self.ignored_ops:
+            self.print_fn(f'Warning: {func_packet} operation is ignored')
+        elif func_packet in self.all_ops:
+            flop_count = self.all_ops[func_packet](args, normalize_tuple(out))
             for par in self.parents:
                 self.flop_counts[par][func_packet] += flop_count
         elif self.verbose:
@@ -119,7 +126,8 @@ def get_flops_aten(model, input_res,
             batch = torch.ones(()).new_empty((1, *input_res))
 
     try:
-        counter = FlopCounterMode(model, verbose, print_per_layer_stat, output_params)
+        counter = FlopCounterMode(model, verbose, print_per_layer_stat, output_params,
+                                  custom_modules_hooks, ignore_modules)
         with counter:
             if isinstance(batch, dict):
                 _ = model(**batch)

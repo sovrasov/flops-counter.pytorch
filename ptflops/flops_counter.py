@@ -29,8 +29,8 @@ def get_model_complexity_info(model: nn.Module,
                               input_constructor: Optional[Callable[[Tuple], Dict]] = None,
                               ost: TextIO = sys.stdout,
                               verbose: bool = False,
-                              ignore_modules: List[nn.Module] = [],
-                              custom_modules_hooks: Dict[nn.Module, Any] = {},
+                              ignore_modules: List[Union[nn.Module, Any]] = [],
+                              custom_modules_hooks: Dict[Union[nn.Module, Any], Any] = {},
                               backend: Union[str, FLOPS_BACKEND] = FLOPS_BACKEND.ATEN,
                               flops_units: Optional[str] = None,
                               param_units: Optional[str] = None,
@@ -61,10 +61,11 @@ def get_model_complexity_info(model: nn.Module,
     :type ost: TextIO
     :param verbose: Parameter to control printing of extra information and warnings.
     :type verbose: bool
-    :param ignore_modules: A list of torch.nn.Module modules to ignore.
-    :type ignore_modules: nn.Module
-    :param custom_modules_hooks: A dict that contains custom hooks on torch modules.
-    :type custom_modules_hooks: Dict[nn.Module, Any]
+    :param ignore_modules: A list of torch.nn.Module or torch.ops.aten modules to ignore.
+    :type ignore_modules: List[Union[nn.Module, Any]]
+    :param custom_modules_hooks: A dict that contains custom hooks for torch.nn.Module or
+     torch.ops.aten modules.
+    :type custom_modules_hooks: Dict[Union[nn.Module, Any], Any]
     :param backend: Backend that used for evaluating model complexity.
     :type backend: FLOPS_BACKEND
     :param flops_units: Units for string representation of MACs (GMac, MMac or KMac).
