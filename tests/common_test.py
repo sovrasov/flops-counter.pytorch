@@ -11,6 +11,18 @@ class TestOperations:
     def default_input_image_size(self):
         return (3, 224, 224)
 
+    @pytest.fixture
+    def simple_model_mm(self):
+        class CustomModel(nn.Module):
+            def __init__(self):
+                super().__init__()
+
+            def forward(self, x):
+                return x.matmul(x.t())
+
+        return CustomModel()
+
+
     @pytest.mark.parametrize("backend", [FLOPS_BACKEND.PYTORCH, FLOPS_BACKEND.ATEN])
     def test_conv(self, default_input_image_size, backend: FLOPS_BACKEND):
         net = nn.Sequential(nn.Conv2d(3, 2, 3, bias=True))
@@ -107,16 +119,9 @@ class TestOperations:
         assert params == 0
         assert macs > 0
 
-    def test_ten_matmul(self):
-        class CustomModel(nn.Module):
-            def __init__(self):
-                super().__init__()
-
-            def forward(self, x):
-                return x.matmul(x.t())
-
+    def test_ten_matmul(self, simple_model_mm):
         macs, params = \
-            get_model_complexity_info(CustomModel(), (10, ),
+            get_model_complexity_info(simple_model_mm, (10, ),
                                       as_strings=False,
                                       print_per_layer_stat=False,
                                       backend=FLOPS_BACKEND.PYTORCH)
@@ -124,17 +129,10 @@ class TestOperations:
         assert params == 0
         assert macs > 0
 
-    def test_aten_ignore(self):
-        class CustomModel(nn.Module):
-            def __init__(self):
-                super().__init__()
-
-            def forward(self, x):
-                return x.matmul(x.t())
-
+    def test_aten_ignore(self, simple_model_mm):
         ignored_list = [torch.ops.aten.matmul, torch.ops.aten.mm]
         macs, params = \
-            get_model_complexity_info(CustomModel(), (10, ), backend=FLOPS_BACKEND.ATEN,
+            get_model_complexity_info(simple_model_mm, (10, ), backend=FLOPS_BACKEND.ATEN,
                                       as_strings=False,
                                       print_per_layer_stat=False,
                                       ignore_modules=ignored_list)
@@ -142,19 +140,12 @@ class TestOperations:
         assert params == 0
         assert macs == 0
 
-    def test_aten_custom(self):
-        class CustomModel(nn.Module):
-            def __init__(self):
-                super().__init__()
-
-            def forward(self, x):
-                return x.matmul(x.t())
-
+    def test_aten_custom(self, simple_model_mm):
         reference = 42
         custom_hooks = {torch.ops.aten.mm: lambda inputs, outputs: reference}
 
         macs, params = \
-            get_model_complexity_info(CustomModel(), (10, ), backend=FLOPS_BACKEND.ATEN,
+            get_model_complexity_info(simple_model_mm, (10, ), backend=FLOPS_BACKEND.ATEN,
                                       as_strings=False,
                                       print_per_layer_stat=False,
                                       custom_modules_hooks=custom_hooks)
