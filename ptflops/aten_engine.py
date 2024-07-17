@@ -12,7 +12,7 @@ import traceback
 from collections import defaultdict
 from copy import deepcopy
 from functools import partial
-from typing import Optional, Tuple, Union
+from typing import Dict, Optional, Tuple, Union
 
 import torch
 from torch.utils._python_dispatch import TorchDispatchMode
@@ -106,8 +106,9 @@ def get_flops_aten(model, input_res,
                    custom_modules_hooks={},
                    output_precision=2,
                    flops_units: Optional[str] = 'GMac',
-                   param_units: Optional[str] = 'M') -> Tuple[Union[int, None],
-                                                              Union[int, None]]:
+                   param_units: Optional[str] = 'M',
+                   extra_config: Dict = {}) -> Tuple[Union[int, None],
+                                                     Union[int, None]]:
 
     params_sum = get_model_parameters_number(model)
     model.eval()

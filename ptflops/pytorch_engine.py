@@ -9,7 +9,7 @@ Copyright (C) 2021-2023 Sovrasov V. - All Rights Reserved
 import sys
 import traceback
 from functools import partial
-from typing import Optional, Tuple, Union
+from typing import Dict, Optional, Tuple, Union
 
 import torch
 import torch.nn as nn
@@ -27,8 +27,9 @@ def get_flops_pytorch(model, input_res,
                       custom_modules_hooks={},
                       output_precision=2,
                       flops_units: Optional[str] = 'GMac',
-                      param_units: Optional[str] = 'M') -> Tuple[Union[int, None],
-                                                                 Union[int, None]]:
+                      param_units: Optional[str] = 'M',
+                      extra_config: Dict = {}) -> Tuple[Union[int, None],
+                                                        Union[int, None]]:
     global CUSTOM_MODULES_MAPPING
     CUSTOM_MODULES_MAPPING = custom_modules_hooks
     flops_model = add_flops_counting_methods(model)
@@ -45,15 +46,18 @@ def get_flops_pytorch(model, input_res,
         except StopIteration:
             batch = torch.ones(()).new_empty((1, *input_res))
 
+    enable_func_ops_patching = extra_config.get('count_functional', True)
     torch_functional_flops = []
     torch_tensor_ops_flops = []
-    patch_functional(torch_functional_flops)
-    patch_tensor_ops(torch_tensor_ops_flops)
+    if enable_func_ops_patching:
+        patch_functional(torch_functional_flops)
+        patch_tensor_ops(torch_tensor_ops_flops)
 
     def reset_environment():
         flops_model.stop_flops_count()
-        unpatch_functional()
-        unpatch_tensor_ops()
+        if enable_func_ops_patching:
+            unpatch_functional()
+            unpatch_tensor_ops()
         global CUSTOM_MODULES_MAPPING
         CUSTOM_MODULES_MAPPING = {}
 

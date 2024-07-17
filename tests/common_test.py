@@ -22,7 +22,6 @@ class TestOperations:
 
         return CustomModel()
 
-
     @pytest.mark.parametrize("backend", [FLOPS_BACKEND.PYTORCH, FLOPS_BACKEND.ATEN])
     def test_conv(self, default_input_image_size, backend: FLOPS_BACKEND):
         net = nn.Sequential(nn.Conv2d(3, 2, 3, bias=True))
@@ -152,3 +151,14 @@ class TestOperations:
 
         assert params == 0
         assert macs == reference
+
+    def test_torch_ignore_func(self, simple_model_mm):
+        macs, params = \
+            get_model_complexity_info(simple_model_mm, (10, ),
+                                      backend=FLOPS_BACKEND.PYTORCH,
+                                      as_strings=False,
+                                      print_per_layer_stat=False,
+                                      backend_specific_config={'count_functional': False})
+
+        assert params == 0
+        assert macs == 0

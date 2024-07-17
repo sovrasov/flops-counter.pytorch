@@ -1,5 +1,10 @@
 # ptflops versions log
 
+## v 0.7.4
+- Switch to aten by default.
+- Add ignore and custom modules for aten.
+- Add an option to disable counting of functional-style operations in pytorch backend.
+
 ## v 0.7.3
 - Add aten backend to collect the amount of flops on aten level.
 
