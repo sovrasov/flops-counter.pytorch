@@ -53,7 +53,8 @@ class TestOperations:
         macs, params = get_model_complexity_info(net, (3,),
                                                  input_constructor=input_constructor,
                                                  as_strings=False,
-                                                 print_per_layer_stat=False)
+                                                 print_per_layer_stat=False,
+                                                 backend=FLOPS_BACKEND.PYTORCH)
 
         assert (macs, params) == (8, 8)
 
@@ -73,7 +74,8 @@ class TestOperations:
             get_model_complexity_info(CustomLinear(), (3,),
                                       input_constructor=input_constructor,
                                       as_strings=False,
-                                      print_per_layer_stat=False)
+                                      print_per_layer_stat=False,
+                                      backend=FLOPS_BACKEND.PYTORCH)
 
         assert (macs, params) == (8, 8)
 
@@ -89,7 +91,8 @@ class TestOperations:
         macs, params = \
             get_model_complexity_info(CustomModel(), (3, 10, 10),
                                       as_strings=False,
-                                      print_per_layer_stat=False)
+                                      print_per_layer_stat=False,
+                                      backend=FLOPS_BACKEND.PYTORCH)
         assert params == 0
         assert macs > 0
 
@@ -99,7 +102,8 @@ class TestOperations:
         macs, params = \
             get_model_complexity_info(CustomModel(), (3, 10, 10),
                                       as_strings=False,
-                                      print_per_layer_stat=False)
+                                      print_per_layer_stat=False,
+                                      backend=FLOPS_BACKEND.PYTORCH)
         assert params == 0
         assert macs > 0
 
@@ -114,7 +118,46 @@ class TestOperations:
         macs, params = \
             get_model_complexity_info(CustomModel(), (10, ),
                                       as_strings=False,
-                                      print_per_layer_stat=False)
+                                      print_per_layer_stat=False,
+                                      backend=FLOPS_BACKEND.PYTORCH)
 
         assert params == 0
         assert macs > 0
+
+    def test_aten_ignore(self):
+        class CustomModel(nn.Module):
+            def __init__(self):
+                super().__init__()
+
+            def forward(self, x):
+                return x.matmul(x.t())
+
+        ignored_list = [torch.ops.aten.matmul, torch.ops.aten.mm]
+        macs, params = \
+            get_model_complexity_info(CustomModel(), (10, ), backend=FLOPS_BACKEND.ATEN,
+                                      as_strings=False,
+                                      print_per_layer_stat=False,
+                                      ignore_modules=ignored_list)
+
+        assert params == 0
+        assert macs == 0
+
+    def test_aten_custom(self):
+        class CustomModel(nn.Module):
+            def __init__(self):
+                super().__init__()
+
+            def forward(self, x):
+                return x.matmul(x.t())
+
+        reference = 42
+        custom_hooks = {torch.ops.aten.mm: lambda inputs, outputs: reference}
+
+        macs, params = \
+            get_model_complexity_info(CustomModel(), (10, ), backend=FLOPS_BACKEND.ATEN,
+                                      as_strings=False,
+                                      print_per_layer_stat=False,
+                                      custom_modules_hooks=custom_hooks)
+
+        assert params == 0
+        assert macs == reference
