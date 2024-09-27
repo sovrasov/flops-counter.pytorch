@@ -347,15 +347,19 @@ def _interpolate_functional_flops_hook(*args, **kwargs):
     if input is None and len(args) > 0:
         input = args[0]
 
+    assert input.dim() - 2 > 0, "Input of interpolate should have NC... layout"
+
     size = kwargs.get('size', None)
     if size is None and len(args) > 1:
         size = args[1]
 
     if size is not None:
         if isinstance(size, tuple) or isinstance(size, list):
-            return int(np.prod(size, dtype=np.int64))
+            return int(np.prod(size, dtype=np.int64)) * \
+                np.prod(input.shape[:2], dtype=np.int64)
         else:
-            return int(size)
+            return int(size) ** (input.dim() - 2) * \
+                np.prod(input.shape[:2], dtype=np.int64)
 
     scale_factor = kwargs.get('scale_factor', None)
     if scale_factor is None and len(args) > 2:
@@ -364,10 +368,10 @@ def _interpolate_functional_flops_hook(*args, **kwargs):
     "should be passes to interpolate"
 
     flops = input.numel()
-    if isinstance(scale_factor, tuple) and len(scale_factor) == len(input):
+    if isinstance(scale_factor, tuple) and len(scale_factor) == len(input.shape) - 2:
         flops *= int(np.prod(scale_factor, dtype=np.int64))
-    else:
-        flops *= scale_factor**len(input)
+    else:  # NC... layout is assumed, see interpolate docs
+        flops *= scale_factor ** (input.dim() - 2)
 
     return flops
 

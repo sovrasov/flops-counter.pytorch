@@ -1,6 +1,5 @@
 # Flops counting tool for neural networks in pytorch framework
 [![Pypi version](https://img.shields.io/pypi/v/ptflops.svg)](https://pypi.org/project/ptflops/)
-[![Build Status](https://travis-ci.com/sovrasov/flops-counter.pytorch.svg?branch=master)](https://travis-ci.com/sovrasov/flops-counter.pytorch)
 
 This tool is designed to compute the theoretical amount of multiply-add operations
 in neural networks. It can also compute the number of parameters and
