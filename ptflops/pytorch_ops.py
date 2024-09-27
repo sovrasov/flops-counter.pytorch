@@ -355,9 +355,11 @@ def _interpolate_functional_flops_hook(*args, **kwargs):
 
     if size is not None:
         if isinstance(size, tuple) or isinstance(size, list):
-            return int(np.prod(size, dtype=np.int64))*np.prod(input.shape[:2], dtype=np.int64)
+            return int(np.prod(size, dtype=np.int64)) * \
+                np.prod(input.shape[:2], dtype=np.int64)
         else:
-            return int(size) ** (input.dim() - 2) * np.prod(input.shape[:2], dtype=np.int64)
+            return int(size) ** (input.dim() - 2) * \
+                np.prod(input.shape[:2], dtype=np.int64)
 
     scale_factor = kwargs.get('scale_factor', None)
     if scale_factor is None and len(args) > 2:
@@ -368,8 +370,8 @@ def _interpolate_functional_flops_hook(*args, **kwargs):
     flops = input.numel()
     if isinstance(scale_factor, tuple) and len(scale_factor) == len(input.shape) - 2:
         flops *= int(np.prod(scale_factor, dtype=np.int64))
-    else:
-        flops *= scale_factor ** (input.dim() - 2) # NC... layout is assumed, see interpolate docs
+    else:  # NC... layout is assumed, see interpolate docs
+        flops *= scale_factor ** (input.dim() - 2)
 
     return flops
 
