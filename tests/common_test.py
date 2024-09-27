@@ -90,13 +90,14 @@ class TestOperations:
 
         assert (macs, params) == (8, 8)
 
-    def test_func_interpolate_args(self):
+    @pytest.mark.parametrize("out_size", [(20, 20), 20])
+    def test_func_interpolate_args(self, out_size):
         class CustomModel(nn.Module):
             def __init__(self):
                 super().__init__()
 
             def forward(self, x):
-                return nn.functional.interpolate(input=x, size=(20, 20),
+                return nn.functional.interpolate(input=x, size=out_size,
                                                  mode='bilinear', align_corners=False)
 
         macs, params = \
@@ -104,10 +105,11 @@ class TestOperations:
                                       as_strings=False,
                                       print_per_layer_stat=False,
                                       backend=FLOPS_BACKEND.PYTORCH)
-        assert params == 0
-        assert macs > 0
 
-        CustomModel.forward = lambda self, x: nn.functional.interpolate(x, size=(20, 20),
+        assert params == 0
+        assert macs == 1200
+
+        CustomModel.forward = lambda self, x: nn.functional.interpolate(x, out_size,
                                                                         mode='bilinear')
 
         macs, params = \
@@ -116,7 +118,18 @@ class TestOperations:
                                       print_per_layer_stat=False,
                                       backend=FLOPS_BACKEND.PYTORCH)
         assert params == 0
-        assert macs > 0
+        assert macs == 1200
+
+        CustomModel.forward = lambda self, x: nn.functional.interpolate(x, scale_factor=2,
+                                                                        mode='bilinear')
+
+        macs, params = \
+            get_model_complexity_info(CustomModel(), (3, 10, 10),
+                                      as_strings=False,
+                                      print_per_layer_stat=False,
+                                      backend=FLOPS_BACKEND.PYTORCH)
+        assert params == 0
+        assert macs == 1200
 
     def test_ten_matmul(self, simple_model_mm):
         macs, params = \
