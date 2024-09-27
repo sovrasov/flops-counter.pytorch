@@ -1,6 +1,7 @@
 # ptflops versions log
 
 ## v 0.7.4
+- Fix hook for nn.functional.interpolate.
 - Switch to aten by default.
 - Add ignore and custom modules for aten.
 - Add an option to disable counting of functional-style operations in pytorch backend.
