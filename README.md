@@ -44,7 +44,7 @@ Experimental support:
 
 - This backend doesn't take into account some of the `torch.nn.functional.*` and `tensor.*` operations. Therefore unsupported operations are
 not contributing to the final complexity estimation. See `ptflops/pytorch_ops.py:FUNCTIONAL_MAPPING,TENSOR_OPS_MAPPING` to check supported ops.
-Sometimes considering functional style conflicts with hooks for `nn.Module` (for instance, custom ones). In that case, counting with these ops can be disabled by
+Sometimes functional-level hooks conflict with hooks for `nn.Module` (for instance, custom ones). In that case, counting with these ops can be disabled by
 passing `backend_specific_config={"count_functional" : False}`.
 - `ptflops` launches a given model on a random tensor and estimates amount of computations during inference. Complicated models can have several inputs, some of them could be optional. To construct non-trivial input one can use the `input_constructor` argument of the `get_model_complexity_info`. `input_constructor` is a function that takes the input spatial resolution as a tuple and returns a dict with named input arguments of the model. Next, this dict would be passed to the model as a keyword arguments.
 - `verbose` parameter allows to get information about modules that don't contribute to the final numbers.
