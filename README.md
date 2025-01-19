@@ -91,7 +91,7 @@ If ptflops was useful for your paper or tech report, please cite me:
 @online{ptflops,
   author = {Vladislav Sovrasov},
   title = {ptflops: a flops counting tool for neural networks in pytorch framework},
-  year = 2018-2024,
+  year = {2018-2024},
   url = {https://github.com/sovrasov/flops-counter.pytorch},
 }
 ```
