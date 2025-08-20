@@ -45,5 +45,5 @@ jobs:
         python -m pytest . -s
     - name: Linting with flake8
       run: |
-        python -m flake8 .
-        python -m isort -rc --check-only --diff ./ptflops ./tests
+        python -m flake8 ./ptflops ./tests ./samples
+        python -m isort -rc --check-only --diff ./ptflops ./tests ./samples
