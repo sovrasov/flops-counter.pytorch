@@ -57,7 +57,8 @@ def bn_flops_counter_hook(module, input, output):
     module.__flops__ += int(batch_flops)
 
 
-def conv_flops_counter_hook(conv_module, input, output, extra_per_position_flops=0, transpose=False):
+def conv_flops_counter_hook(conv_module, input, output, extra_per_position_flops=0,
+                            transpose=False):
     # Can have multiple inputs, getting the first one
     input = input[0]
 
