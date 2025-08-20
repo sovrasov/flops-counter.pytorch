@@ -42,7 +42,7 @@ jobs:
         pip install .[dev]
     - name: Testing with pytest
       run: |
-        python -m pytest . -s
+        python -m pytest ./tests -s -v
     - name: Linting with flake8
       run: |
         python -m flake8 ./ptflops ./tests ./samples
