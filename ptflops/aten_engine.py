@@ -54,7 +54,7 @@ class FlopCounterMode(TorchDispatchMode):
 
     def exit_module(self, name):
         def f(*args):
-            assert(self.parents[-1] == name)
+            assert (self.parents[-1] == name)
             self.parents.pop()
         return f
 
@@ -138,7 +138,7 @@ def get_flops_aten(model, input_res,
 
     except Exception as e:
         print("Flops estimation was not finished successfully because of"
-              f" the following exception:\n{type(e)} : {e}")
+              f" the following exception: \n{type(e)}: {e}")
         traceback.print_exc()
 
         return None, None

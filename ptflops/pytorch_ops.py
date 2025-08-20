@@ -57,7 +57,8 @@ def bn_flops_counter_hook(module, input, output):
     module.__flops__ += int(batch_flops)
 
 
-def conv_flops_counter_hook(conv_module, input, output, extra_per_position_flops=0, transpose=False):
+def conv_flops_counter_hook(conv_module, input, output, extra_per_position_flops=0,
+                            transpose=False):
     # Can have multiple inputs, getting the first one
     input = input[0]
 
@@ -84,8 +85,7 @@ def conv_flops_counter_hook(conv_module, input, output, extra_per_position_flops
     bias_flops = 0
 
     if conv_module.bias is not None:
-
-        bias_flops = out_channels * active_elements_count
+        bias_flops = batch_size * int(np.prod(list(output.shape[1:]), dtype=np.int64))
 
     overall_flops = overall_conv_flops + bias_flops
 

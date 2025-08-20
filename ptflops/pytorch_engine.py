@@ -15,8 +15,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from .pytorch_ops import (CUSTOM_MODULES_MAPPING, FUNCTIONAL_MAPPING,
-                          MODULES_MAPPING, TENSOR_OPS_MAPPING)
+from .pytorch_ops import (CUSTOM_MODULES_MAPPING, FUNCTIONAL_MAPPING, MODULES_MAPPING,
+                          TENSOR_OPS_MAPPING)
 from .utils import flops_to_string, params_to_string
 
 
@@ -72,7 +72,7 @@ def get_flops_pytorch(model, input_res,
 
     except Exception as e:
         print("Flops estimation was not finished successfully because of"
-              f" the following exception:\n{type(e)} : {e}")
+              f" the following exception: \n{type(e)}: {e}")
         traceback.print_exc()
         reset_environment()
 
