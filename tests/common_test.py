@@ -34,6 +34,17 @@ class TestOperations:
         assert macs == 2759904
 
     @pytest.mark.parametrize("backend", [FLOPS_BACKEND.PYTORCH, FLOPS_BACKEND.ATEN])
+    def test_conv_t(self, default_input_image_size, backend: FLOPS_BACKEND):
+        net = nn.ConvTranspose2d(3, 2, 3, stride=(2, 2), bias=True)
+        macs, params = get_model_complexity_info(net, default_input_image_size,
+                                                 as_strings=False,
+                                                 print_per_layer_stat=False,
+                                                 backend=backend)
+
+        assert params == 3 * 3 * 2 * 3 + 2
+        assert macs == 3112706
+
+    @pytest.mark.parametrize("backend", [FLOPS_BACKEND.PYTORCH, FLOPS_BACKEND.ATEN])
     def test_fc(self, backend: FLOPS_BACKEND):
         net = nn.Sequential(nn.Linear(3, 2, bias=True))
         macs, params = get_model_complexity_info(net, (3,),
