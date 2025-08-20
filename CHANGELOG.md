@@ -1,5 +1,8 @@
 # ptflops versions log
 
+## v 0.7.5
+- Fix hook for nn.ConvTranspose2d
+
 ## v 0.7.4
 - Fix hook for nn.functional.interpolate.
 - Add ignore and custom modules for aten.
